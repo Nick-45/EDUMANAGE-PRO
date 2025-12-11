@@ -1,0 +1,2115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduManage Pro | Smart School Management System</title>
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --light-green: #4CAF50;
+            --dark-green: #2E7D32;
+            --golden: #FFD700;
+            --white: #FFFFFF;
+            --light-gray: #F8F9FA;
+            --gray: #6C757D;
+            --dark-gray: #343A40;
+            --gradient-green: linear-gradient(135deg, #4CAF50, #2E7D32);
+            --gradient-gold: linear-gradient(135deg, #FFD700, #FFC107);
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Custom Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        @keyframes slideInLeft {
+            from { transform: translateX(-100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 1.5rem 5%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+            transition: var(--transition);
+        }
+
+        .navbar.scrolled {
+            padding: 1rem 5%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 1.5rem;
+            animation: rotate 20s linear infinite;
+        }
+
+        .logo-text {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900;
+            font-size: 1.8rem;
+            background: var(--gradient-green);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--dark-gray);
+            font-weight: 500;
+            position: relative;
+            padding: 0.5rem 0;
+            transition: var(--transition);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: var(--gradient-green);
+            transition: var(--transition);
+            border-radius: 3px;
+        }
+
+        .nav-link:hover {
+            color: var(--light-green);
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .login-btn {
+            padding: 0.8rem 2rem;
+            background: var(--gradient-green);
+            color: var(--white);
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(76, 175, 80, 0.4);
+        }
+
+        .login-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .login-btn:hover::before {
+            left: 100%;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 8% 5% 5%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            flex: 1;
+            max-width: 600px;
+            z-index: 2;
+        }
+
+        .hero-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 4rem;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: var(--gradient-green);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: slideInLeft 1s ease-out;
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            color: var(--gray);
+            margin-bottom: 2rem;
+            animation: slideInLeft 1s ease-out 0.2s both;
+        }
+
+        .hero-description {
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+            color: var(--dark-gray);
+            animation: slideInLeft 1s ease-out 0.4s both;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1.5rem;
+            animation: slideInLeft 1s ease-out 0.6s both;
+        }
+
+        .btn {
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: var(--gradient-green);
+            color: var(--white);
+            box-shadow: 0 10px 25px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--white);
+            color: var(--light-green);
+            border: 2px solid var(--light-green);
+        }
+
+        .btn-secondary:hover {
+            background: var(--light-green);
+            color: var(--white);
+            transform: translateY(-5px);
+        }
+
+        .hero-visual {
+            flex: 1;
+            position: relative;
+            height: 600px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .floating-elements {
+            position: relative;
+            width: 500px;
+            height: 500px;
+        }
+
+        .main-dashboard {
+            width: 400px;
+            height: 300px;
+            background: var(--white);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            overflow: hidden;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .dashboard-content {
+            padding: 1.5rem;
+            height: 100%;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 0.5rem;
+        }
+
+        .dashboard-item {
+            background: var(--light-gray);
+            border-radius: 10px;
+            transition: var(--transition);
+        }
+
+        .dashboard-item:hover {
+            background: var(--light-green);
+            transform: scale(1.05);
+        }
+
+        .floating-element {
+            position: absolute;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow);
+            animation: float 4s ease-in-out infinite;
+            animation-delay: var(--delay);
+        }
+
+        .element-1 {
+            width: 120px;
+            height: 120px;
+            background: var(--gradient-green);
+            top: 0;
+            right: 0;
+            animation-delay: 0s;
+            color: var(--white);
+            font-size: 2.5rem;
+        }
+
+        .element-2 {
+            width: 100px;
+            height: 100px;
+            background: var(--gradient-gold);
+            bottom: 0;
+            left: 0;
+            animation-delay: 1s;
+            color: var(--dark-gray);
+            font-size: 2rem;
+        }
+
+        .element-3 {
+            width: 80px;
+            height: 80px;
+            background: var(--white);
+            top: 20%;
+            left: 0;
+            animation-delay: 2s;
+            color: var(--light-green);
+            font-size: 1.8rem;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 8rem 5%;
+            background: var(--white);
+            position: relative;
+        }
+
+        .section-title {
+            text-align: center;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            background: var(--gradient-green);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: var(--gray);
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto 4rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2.5rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background: var(--light-gray);
+            border-radius: 20px;
+            padding: 2.5rem;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            border: 2px solid transparent;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow);
+            border-color: var(--light-green);
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: var(--gradient-green);
+            transform: scaleX(0);
+            transition: var(--transition);
+            transform-origin: left;
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--gradient-green);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: var(--white);
+            font-size: 2rem;
+            transition: var(--transition);
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: rotateY(180deg);
+            background: var(--gradient-gold);
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--dark-gray);
+        }
+
+        .feature-description {
+            color: var(--gray);
+            line-height: 1.6;
+        }
+
+        /* Pricing Section */
+        .pricing-section {
+            padding: 8rem 5%;
+            background: var(--light-gray);
+            position: relative;
+        }
+
+        .pricing-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .pricing-intro {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .pricing-intro h2 {
+            font-size: 1.2rem;
+            color: var(--light-green);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .pricing-card {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 3rem;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+            position: relative;
+            border: 2px solid transparent;
+            overflow: hidden;
+        }
+
+        .pricing-card.featured {
+            border-color: var(--golden);
+            transform: scale(1.05);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .pricing-card.featured::before {
+            content: 'Most Popular';
+            position: absolute;
+            top: 20px;
+            right: -35px;
+            background: var(--gradient-gold);
+            color: var(--dark-gray);
+            padding: 0.5rem 3rem;
+            transform: rotate(45deg);
+            font-weight: 600;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .pricing-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid var(--light-gray);
+        }
+
+        .pricing-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--dark-gray);
+            margin-bottom: 1rem;
+        }
+
+        .pricing-subtitle {
+            color: var(--gray);
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .pricing-amount {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .price {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: var(--dark-green);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .price-suffix {
+            font-size: 1rem;
+            color: var(--gray);
+            font-weight: 500;
+        }
+
+        .price-note {
+            font-size: 0.9rem;
+            color: var(--gray);
+            font-style: italic;
+        }
+
+        .pricing-features {
+            list-style: none;
+            margin-bottom: 3rem;
+        }
+
+        .pricing-features li {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.8rem;
+            color: var(--dark-gray);
+        }
+
+        .pricing-features li i {
+            color: var(--light-green);
+            font-size: 1.1rem;
+            margin-top: 0.2rem;
+            flex-shrink: 0;
+        }
+
+        .pricing-features li.disabled {
+            color: #ccc;
+        }
+
+        .pricing-features li.disabled i {
+            color: #ccc;
+        }
+
+        .pricing-button {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+        }
+
+        .btn-standard {
+            background: var(--gradient-green);
+            color: var(--white);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-standard:hover {
+            background: var(--dark-green);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(46, 125, 50, 0.4);
+        }
+
+        .btn-premium {
+            background: var(--gradient-gold);
+            color: var(--dark-gray);
+            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
+        }
+
+        .btn-premium:hover {
+            background: #ffc107;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 193, 7, 0.4);
+        }
+
+        /* Order Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .order-modal {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 3rem;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+            animation: slideInUp 0.4s ease;
+        }
+
+        @keyframes slideInUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .modal-header h2 {
+            font-size: 2rem;
+            color: var(--dark-green);
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-header p {
+            color: var(--gray);
+            font-size: 1rem;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--gray);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .close-modal:hover {
+            color: var(--dark-green);
+            transform: rotate(90deg);
+        }
+
+        .order-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: var(--dark-gray);
+            font-size: 0.95rem;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 0.9rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: var(--transition);
+            background: var(--light-gray);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--light-green);
+            background: var(--white);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+
+        .package-summary {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid var(--light-green);
+        }
+
+        .package-summary h4 {
+            color: var(--dark-green);
+            margin-bottom: 0.8rem;
+            font-size: 1.1rem;
+        }
+
+        .package-summary p {
+            color: var(--dark-gray);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .form-disclaimer {
+            font-size: 0.85rem;
+            color: var(--gray);
+            text-align: center;
+            margin-top: 1rem;
+            line-height: 1.5;
+        }
+
+        .submit-order {
+            padding: 1rem;
+            background: var(--gradient-green);
+            color: var(--white);
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+            margin-top: 1rem;
+        }
+
+        .submit-order:hover {
+            background: var(--dark-green);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(46, 125, 50, 0.4);
+        }
+
+        /* Stats Section */
+        .stats {
+            padding: 6rem 5%;
+            background: var(--gradient-green);
+            color: var(--white);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23000000' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+            opacity: 0.1;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 3rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            transition: var(--transition);
+        }
+
+        .stat-item:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-number {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+            display: block;
+            position: relative;
+        }
+
+        .stat-number::after {
+            content: '+';
+            color: var(--golden);
+        }
+
+        .stat-label {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        /* Testimonials */
+        .testimonials {
+            padding: 8rem 5%;
+            background: var(--light-gray);
+        }
+
+        .testimonial-slider {
+            max-width: 1000px;
+            margin: 4rem auto 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .testimonial-track {
+            display: flex;
+            transition: transform 0.5s ease;
+        }
+
+        .testimonial-card {
+            min-width: 100%;
+            background: var(--white);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .testimonial-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 1.5rem;
+            border: 5px solid var(--light-green);
+            overflow: hidden;
+        }
+
+        .testimonial-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .testimonial-text {
+            font-size: 1.2rem;
+            font-style: italic;
+            color: var(--dark-gray);
+            margin-bottom: 2rem;
+            line-height: 1.8;
+        }
+
+        .testimonial-author {
+            font-weight: 600;
+            color: var(--light-green);
+            font-size: 1.1rem;
+        }
+
+        .slider-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .slider-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--white);
+            border: 2px solid var(--light-green);
+            color: var(--light-green);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .slider-btn:hover {
+            background: var(--light-green);
+            color: var(--white);
+            transform: scale(1.1);
+        }
+
+        /* CTA Section */
+        .cta-section {
+            padding: 8rem 5%;
+            background: var(--gradient-green);
+            color: var(--white);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: rotate 100s linear infinite;
+            z-index: 1;
+        }
+
+        .cta-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .cta-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+        }
+
+        .cta-subtitle {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            margin-bottom: 3rem;
+        }
+
+        .cta-button {
+            padding: 1.2rem 3rem;
+            font-size: 1.2rem;
+            background: var(--gradient-gold);
+            color: var(--dark-gray);
+            border: none;
+            border-radius: 50px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--dark-gray);
+            color: var(--white);
+            padding: 5rem 5% 2rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-logo-text {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900;
+            font-size: 2rem;
+            background: var(--gradient-green);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .footer-description {
+            color: #aaa;
+            line-height: 1.6;
+        }
+
+        .footer-heading {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--white);
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-link {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-link a {
+            color: #aaa;
+            text-decoration: none;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .footer-link a:hover {
+            color: var(--light-green);
+            transform: translateX(5px);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .social-link {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .social-link:hover {
+            background: var(--light-green);
+            transform: translateY(-5px);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .hero {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .hero-content {
+                margin-bottom: 4rem;
+            }
+            
+            .hero-title {
+                font-size: 3rem;
+            }
+            
+            .cta-buttons {
+                justify-content: center;
+            }
+            
+            .floating-elements {
+                width: 400px;
+                height: 400px;
+            }
+            
+            .pricing-card.featured {
+                transform: scale(1);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .section-title {
+                font-size: 2.5rem;
+            }
+            
+            .stat-number {
+                font-size: 2.5rem;
+            }
+            
+            .cta-title {
+                font-size: 2.5rem;
+            }
+            
+            .floating-elements {
+                width: 300px;
+                height: 300px;
+            }
+            
+            .main-dashboard {
+                width: 300px;
+                height: 250px;
+            }
+            
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .order-modal {
+                padding: 2rem;
+                width: 95%;
+            }
+        }
+
+        /* Particle Background */
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            background: var(--light-green);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float 15s infinite linear;
+        }
+
+        /* Scroll Animation */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Order Modal -->
+    <div class="modal-overlay" id="orderModal">
+        <div class="order-modal">
+            <button class="close-modal" id="closeModal">&times;</button>
+            <div class="modal-header">
+                <h2>Order EduManage Pro</h2>
+                <p>Complete the form below to place your order</p>
+            </div>
+            
+            <form class="order-form" id="orderForm">
+                <div class="form-group">
+                    <label for="clientName">Full Name *</label>
+                    <input type="text" id="clientName" placeholder="Enter your full name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="schoolName">School Name *</label>
+                    <input type="text" id="schoolName" placeholder="Enter school name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="clientEmail">Email Address *</label>
+                    <input type="email" id="clientEmail" placeholder="Enter your email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="clientPhone">Phone Number *</label>
+                    <input type="tel" id="clientPhone" placeholder="e.g., +2547XXXXXXXX" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="studentCount">Estimated Student Count</label>
+                    <select id="studentCount">
+                        <option value="0-100">0-100 Students</option>
+                        <option value="100-500">100-500 Students</option>
+                        <option value="500+">500+ Students</option>
+                    </select>
+                </div>
+                
+                <div class="package-summary">
+                    <h4 id="selectedPackageTitle">Small School Package</h4>
+                    <p id="selectedPackageDescription">Ksh. 1,500 per term for schools with 0-100 students</p>
+                </div>
+                
+                <p class="form-disclaimer">
+                    After submitting, you'll be redirected to WhatsApp to complete your order.
+                    Our team will contact you within 24 hours for setup and training scheduling.
+                </p>
+                
+                <input type="hidden" id="selectedPackage" value="small">
+                <input type="hidden" id="packagePrice" value="1500">
+                <input type="hidden" id="packageType" value="per term">
+                
+                <button type="submit" class="submit-order">
+                    <i class="fab fa-whatsapp"></i> Complete Order via WhatsApp
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <div class="logo-text">EduManage Pro</div>
+        </div>
+        
+        <div class="nav-links">
+            <a href="#features" class="nav-link">Features</a>
+            <a href="#pricing" class="nav-link">Pricing</a>
+            <a href="#stats" class="nav-link">Statistics</a>
+            <a href="#testimonials" class="nav-link">Testimonials</a>
+            <a href="#contact" class="nav-link">Contact</a>
+        </div>
+        
+        <button class="login-btn" onclick="redirectToLogin()">
+            <i class="fas fa-sign-in-alt"></i> Login
+        </button>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="particles" id="particles"></div>
+        
+        <div class="hero-content">
+            <h1 class="hero-title reveal">Transform Your School Management</h1>
+            <p class="hero-subtitle reveal">The Complete Digital Solution for Modern Education</p>
+            <p class="hero-description reveal">
+                EduManage Pro is an all-in-one school management system that simplifies administration, 
+                enhances teaching, and improves learning outcomes. Join thousands of schools already 
+                benefiting from our platform.
+            </p>
+            <div class="cta-buttons reveal">
+                <a href="#pricing" class="btn btn-primary">
+                    <i class="fas fa-tags"></i> View Pricing
+                </a>
+                <a href="#features" class="btn btn-secondary">
+                    <i class="fas fa-search"></i> Explore Features
+                </a>
+            </div>
+        </div>
+        
+        <div class="hero-visual">
+            <div class="floating-elements">
+                <div class="main-dashboard">
+                    <div class="dashboard-content">
+                        <div class="dashboard-item"></div>
+                        <div class="dashboard-item"></div>
+                        <div class="dashboard-item"></div>
+                        <div class="dashboard-item"></div>
+                        <div class="dashboard-item"></div>
+                        <div class="dashboard-item"></div>
+                        <div class="dashboard-item"></div>
+                        <div class="dashboard-item"></div>
+                        <div class="dashboard-item"></div>
+                        <div class="dashboard-item"></div>
+                        <div class="dashboard-item"></div>
+                        <div class="dashboard-item"></div>
+                    </div>
+                </div>
+                
+                <div class="floating-element element-1">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                
+                <div class="floating-element element-2">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                
+                <div class="floating-element element-3">
+                    <i class="fas fa-book-open"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <h2 class="section-title reveal">Powerful Features</h2>
+        <p class="section-subtitle reveal">Everything you need to manage your school efficiently</p>
+        
+        <div class="features-grid">
+            <div class="feature-card reveal">
+                <div class="feature-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3 class="feature-title">Student Management</h3>
+                <p class="feature-description">
+                    Complete student profiles, attendance tracking, behavior monitoring, 
+                    and academic performance analysis in one place.
+                </p>
+            </div>
+            
+            <div class="feature-card reveal">
+                <div class="feature-icon">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <h3 class="feature-title">Teacher Portal</h3>
+                <p class="feature-description">
+                    Lesson planning, gradebook, assignment distribution, and parent 
+                    communication tools for educators.
+                </p>
+            </div>
+            
+            <div class="feature-card reveal">
+                <div class="feature-icon">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                </div>
+                <h3 class="feature-title">Finance Management</h3>
+                <p class="feature-description">
+                    Automated fee collection, expense tracking, payroll management, 
+                    and financial reporting for complete transparency.
+                </p>
+            </div>
+            
+            <div class="feature-card reveal">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <h3 class="feature-title">Smart Reporting</h3>
+                <p class="feature-description">
+                    Generate comprehensive reports, academic transcripts, and 
+                    performance analytics with real-time data visualization.
+                </p>
+            </div>
+            
+            <div class="feature-card reveal">
+                <div class="feature-icon">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <h3 class="feature-title">Mobile Access</h3>
+                <p class="feature-description">
+                    Access the system from any device. Dedicated mobile apps for 
+                    teachers, students, and parents with push notifications.
+                </p>
+            </div>
+            
+            <div class="feature-card reveal">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3 class="feature-title">Security & Privacy</h3>
+                <p class="feature-description">
+                    Enterprise-grade security with role-based access control, 
+                    data encryption, and GDPR compliance for complete peace of mind.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing-section" id="pricing">
+        <div class="pricing-container">
+            <div class="section-header reveal">
+                <h2 class="section-title">Affordable Pricing Plans</h2>
+                <p class="section-subtitle">
+                    Choose the perfect plan for your school's needs. All plans include setup, 
+                    training, and ongoing support.
+                </p>
+            </div>
+            
+            <div class="pricing-grid">
+                <!-- Small School Package -->
+                <div class="pricing-card reveal">
+                    <div class="pricing-header">
+                        <h3 class="pricing-title">Small School Package</h3>
+                        <p class="pricing-subtitle">Perfect for schools with 0-100 students</p>
+                    </div>
+                    
+                    <div class="pricing-amount">
+                        <div class="price">Ksh. 1,500</div>
+                        <div class="price-suffix">per term</div>
+                        <div class="price-note">Billed termly</div>
+                    </div>
+                    
+                    <ul class="pricing-features">
+                        <li><i class="fas fa-check"></i> Full System Access</li>
+                        <li><i class="fas fa-check"></i> Up to 100 Students</li>
+                        <li><i class="fas fa-check"></i> Up to 15 Teachers</li>
+                        <li><i class="fas fa-check"></i> Basic Reporting</li>
+                        <li><i class="fas fa-check"></i> Email Support</li>
+                        <li><i class="fas fa-check"></i> Mobile App Access</li>
+                        <li><i class="fas fa-check"></i> 2 Staff Training Sessions</li>
+                        <li><i class="fas fa-check"></i> System Setup Included</li>
+                    </ul>
+                    
+                    <button class="pricing-button btn-standard" onclick="selectPackage('small', 'Small School Package', 'Ksh. 1,500 per term for schools with 0-100 students', '1500', 'per term')">
+                        <i class="fas fa-shopping-cart"></i> Get This Package
+                    </button>
+                </div>
+                
+                <!-- Medium School Package -->
+                <div class="pricing-card featured reveal">
+                    <div class="pricing-header">
+                        <h3 class="pricing-title">Medium School Package</h3>
+                        <p class="pricing-subtitle">Ideal for schools with 100-500 students</p>
+                    </div>
+                    
+                    <div class="pricing-amount">
+                        <div class="price">Ksh. 3,500</div>
+                        <div class="price-suffix">per term</div>
+                        <div class="price-note">Most Popular Choice</div>
+                    </div>
+                    
+                    <ul class="pricing-features">
+                        <li><i class="fas fa-check"></i> Everything in Small Package</li>
+                        <li><i class="fas fa-check"></i> Up to 500 Students</li>
+                        <li><i class="fas fa-check"></i> Up to 40 Teachers</li>
+                        <li><i class="fas fa-check"></i> Advanced Reporting</li>
+                        <li><i class="fas fa-check"></i> Priority Email & Phone Support</li>
+                        <li><i class="fas fa-check"></i> Custom Branding</li>
+                        <li><i class="fas fa-check"></i> 4 Staff Training Sessions</li>
+                        <li><i class="fas fa-check"></i> Data Migration Assistance</li>
+                    </ul>
+                    
+                    <button class="pricing-button btn-premium" onclick="selectPackage('medium', 'Medium School Package', 'Ksh. 3,500 per term for schools with 100-500 students', '3500', 'per term')">
+                        <i class="fas fa-crown"></i> Get This Package
+                    </button>
+                </div>
+                
+                <!-- One-Time Purchase -->
+                <div class="pricing-card reveal">
+                    <div class="pricing-header">
+                        <h3 class="pricing-title">One-Time Purchase</h3>
+                        <p class="pricing-subtitle">Own the system forever</p>
+                    </div>
+                    
+                    <div class="pricing-amount">
+                        <div class="price">Ksh. 29,999</div>
+                        <div class="price-suffix">one-time payment</div>
+                        <div class="price-note">Lifetime ownership</div>
+                    </div>
+                    
+                    <ul class="pricing-features">
+                        <li><i class="fas fa-check"></i> Full System Ownership</li>
+                        <li><i class="fas fa-check"></i> Unlimited Students & Teachers</li>
+                        <li><i class="fas fa-check"></i> All Premium Features</li>
+                        <li><i class="fas fa-check"></i> Priority 24/7 Support</li>
+                        <li><i class="fas fa-check"></i> Full Staff Training Program</li>
+                        <li><i class="fas fa-check"></i> Custom Development Hours</li>
+                        <li><i class="fas fa-check"></i> White-label Option</li>
+                        <li><i class="fas fa-check"></i> Source Code Access</li>
+                    </ul>
+                    
+                    <button class="pricing-button btn-standard" onclick="selectPackage('lifetime', 'One-Time Purchase Package', 'Ksh. 29,999 one-time payment - Full system ownership with unlimited students and teachers', '29999', 'one-time')">
+                        <i class="fas fa-gem"></i> Buy Once, Use Forever
+                    </button>
+                </div>
+            </div>
+            
+            <div class="pricing-intro reveal">
+                <h2>Why Choose EduManage Pro?</h2>
+                <p class="section-subtitle" style="margin-top: 1rem;">
+                    All packages include comprehensive staff training, system setup, and dedicated support. 
+                    No hidden fees. Cancel anytime (subscription plans only).
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats" id="stats">
+        <div class="stats-grid">
+            <div class="stat-item reveal">
+                <span class="stat-number" data-target="500">0</span>
+                <span class="stat-label">Schools Trust Us</span>
+            </div>
+            
+            <div class="stat-item reveal">
+                <span class="stat-number" data-target="75000">0</span>
+                <span class="stat-label">Active Students</span>
+            </div>
+            
+            <div class="stat-item reveal">
+                <span class="stat-number" data-target="15000">0</span>
+                <span class="stat-label">Teachers Empowered</span>
+            </div>
+            
+            <div class="stat-item reveal">
+                <span class="stat-number" data-target="99">0</span>
+                <span class="stat-label">Satisfaction Rate</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="testimonials" id="testimonials">
+        <h2 class="section-title reveal">What Our Clients Say</h2>
+        <p class="section-subtitle reveal">Hear from schools that transformed their operations</p>
+        
+        <div class="testimonial-slider">
+            <div class="testimonial-track" id="testimonialTrack">
+                <div class="testimonial-card">
+                    <div class="testimonial-avatar">
+                        <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Principal">
+                    </div>
+                    <p class="testimonial-text">
+                        "EduManage Pro revolutionized our school administration. What used to take days now 
+                        takes minutes. The reporting features alone have saved us countless hours."
+                    </p>
+                    <p class="testimonial-author">- Dr. James Wilson, Principal</p>
+                </div>
+                
+                <div class="testimonial-card">
+                    <div class="testimonial-avatar">
+                        <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Teacher">
+                    </div>
+                    <p class="testimonial-text">
+                        "As a teacher, the gradebook and lesson planning tools have made my job so much easier. 
+                        I can focus more on teaching and less on paperwork."
+                    </p>
+                    <p class="testimonial-author">- Sarah Johnson, Mathematics Teacher</p>
+                </div>
+                
+                <div class="testimonial-card">
+                    <div class="testimonial-avatar">
+                        <img src="https://randomuser.me/api/portraits/men/67.jpg" alt="Parent">
+                    </div>
+                    <p class="testimonial-text">
+                        "The parent portal keeps me updated on my child's progress in real-time. Fee payments 
+                        are seamless, and communication with teachers has never been better."
+                    </p>
+                    <p class="testimonial-author">- Michael Brown, Parent</p>
+                </div>
+            </div>
+            
+            <div class="slider-controls">
+                <button class="slider-btn prev-btn" onclick="prevTestimonial()">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="slider-btn next-btn" onclick="nextTestimonial()">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section" id="cta">
+        <div class="cta-content">
+            <h2 class="cta-title reveal">Ready to Transform Your School?</h2>
+            <p class="cta-subtitle reveal">
+                Join thousands of educational institutions using EduManage Pro to streamline their operations
+            </p>
+            <button class="cta-button reveal" onclick="scrollToPricing()">
+                <i class="fas fa-rocket"></i> Choose Your Package
+            </button>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer" id="contact">
+        <div class="footer-content">
+            <div class="footer-about">
+                <div class="footer-logo">
+                    <div class="logo-icon" style="width: 40px; height: 40px; font-size: 1.2rem;">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <div class="footer-logo-text">EduManage Pro</div>
+                </div>
+                <p class="footer-description">
+                    The complete school management solution for the digital age. 
+                    Streamline operations, enhance learning, and empower educators.
+                </p>
+                <div class="social-links">
+                    <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            
+            <div class="footer-links-section">
+                <h3 class="footer-heading">Quick Links</h3>
+                <ul class="footer-links">
+                    <li class="footer-link"><a href="#features"><i class="fas fa-chevron-right"></i> Features</a></li>
+                    <li class="footer-link"><a href="#pricing"><i class="fas fa-chevron-right"></i> Pricing</a></li>
+                    <li class="footer-link"><a href="#stats"><i class="fas fa-chevron-right"></i> Statistics</a></li>
+                    <li class="footer-link"><a href="#testimonials"><i class="fas fa-chevron-right"></i> Testimonials</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-links-section">
+                <h3 class="footer-heading">Packages</h3>
+                <ul class="footer-links">
+                    <li class="footer-link"><a href="#pricing"><i class="fas fa-chevron-right"></i> Small School (0-100)</a></li>
+                    <li class="footer-link"><a href="#pricing"><i class="fas fa-chevron-right"></i> Medium School (100-500)</a></li>
+                    <li class="footer-link"><a href="#pricing"><i class="fas fa-chevron-right"></i> One-Time Purchase</a></li>
+                    <li class="footer-link"><a href="#pricing"><i class="fas fa-chevron-right"></i> Custom Enterprise</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-contact">
+                <h3 class="footer-heading">Contact Us</h3>
+                <ul class="footer-links">
+                    <li class="footer-link">
+                        <a href="#"><i class="fas fa-map-marker-alt"></i> Nairobi, Kenya</a>
+                    </li>
+                    <li class="footer-link">
+                        <a href="mailto:info@edumanagepro.com"><i class="fas fa-envelope"></i> info@edumanagepro.com</a>
+                    </li>
+                    <li class="footer-link">
+                        <a href="tel:+254114963959"><i class="fab fa-whatsapp"></i> +254 114 963 959</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2024 EduManage Pro. All rights reserved. | Designed with <i class="fas fa-heart" style="color: #ff4757;"></i> for education</p>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create particles background
+            createParticles();
+            
+            // Initialize animations
+            initAnimations();
+            
+            // Initialize testimonial slider
+            initTestimonialSlider();
+            
+            // Initialize counter animation
+            initCounters();
+            
+            // Setup scroll events
+            setupScrollEvents();
+            
+            // Setup navbar scroll effect
+            setupNavbar();
+            
+            // Setup modal functionality
+            setupModal();
+        });
+
+        // Create animated particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 50;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // Random size between 5px and 20px
+                const size = Math.random() * 15 + 5;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                // Random position
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                
+                // Random animation delay and duration
+                const delay = Math.random() * 10;
+                const duration = Math.random() * 20 + 10;
+                particle.style.animationDelay = `${delay}s`;
+                particle.style.animationDuration = `${duration}s`;
+                
+                // Random color variation
+                const hue = 120 + Math.random() * 40; // Green hue range
+                particle.style.backgroundColor = `hsl(${hue}, 70%, 60%)`;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Initialize scroll animations
+        function initAnimations() {
+            const revealElements = document.querySelectorAll('.reveal');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                        
+                        // If element has data-target for counter, start counting
+                        if (entry.target.classList.contains('stat-number')) {
+                            animateCounter(entry.target);
+                        }
+                    }
+                });
+            }, {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            });
+            
+            revealElements.forEach(el => observer.observe(el));
+        }
+
+        // Animate number counters
+        function animateCounter(element) {
+            const target = parseInt(element.getAttribute('data-target'));
+            const duration = 2000; // 2 seconds
+            const step = target / (duration / 16); // 60fps
+            let current = 0;
+            
+            const timer = setInterval(() => {
+                current += step;
+                if (current >= target) {
+                    element.textContent = target;
+                    clearInterval(timer);
+                } else {
+                    element.textContent = Math.floor(current);
+                }
+            }, 16);
+        }
+
+        // Initialize all counters
+        function initCounters() {
+            const counters = document.querySelectorAll('.stat-number');
+            counters.forEach(counter => {
+                counter.textContent = '0';
+            });
+        }
+
+        // Testimonial slider
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.testimonial-card');
+        const track = document.getElementById('testimonialTrack');
+
+        function initTestimonialSlider() {
+            updateSlider();
+            
+            // Auto slide every 5 seconds
+            setInterval(() => {
+                nextTestimonial();
+            }, 5000);
+        }
+
+        function nextTestimonial() {
+            currentSlide = (currentSlide + 1) % slides.length;
+            updateSlider();
+        }
+
+        function prevTestimonial() {
+            currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+            updateSlider();
+        }
+
+        function updateSlider() {
+            track.style.transform = `translateX(-${currentSlide * 100}%)`;
+        }
+
+        // Navbar scroll effect
+        function setupNavbar() {
+            const navbar = document.getElementById('navbar');
+            
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            });
+        }
+
+        // Setup scroll events for smooth navigation
+        function setupScrollEvents() {
+            // Smooth scroll for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    const targetId = this.getAttribute('href');
+                    if (targetId === '#') return;
+                    
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        e.preventDefault();
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 80,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+        }
+
+        // Setup modal functionality
+        function setupModal() {
+            const modal = document.getElementById('orderModal');
+            const closeModalBtn = document.getElementById('closeModal');
+            const orderForm = document.getElementById('orderForm');
+            
+            // Close modal when clicking outside
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeOrderModal();
+                }
+            });
+            
+            // Close modal with button
+            closeModalBtn.addEventListener('click', closeOrderModal);
+            
+            // Close with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && modal.classList.contains('active')) {
+                    closeOrderModal();
+                }
+            });
+            
+            // Handle form submission
+            orderForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                processOrder();
+            });
+        }
+
+        // Package selection function
+        let selectedPackage = {
+            id: 'small',
+            title: 'Small School Package',
+            description: 'Ksh. 1,500 per term for schools with 0-100 students',
+            price: '1500',
+            type: 'per term'
+        };
+
+        function selectPackage(packageId, title, description, price, type) {
+            // Store selected package
+            selectedPackage = {
+                id: packageId,
+                title: title,
+                description: description,
+                price: price,
+                type: type
+            };
+            
+            // Update form fields
+            document.getElementById('selectedPackage').value = packageId;
+            document.getElementById('selectedPackageTitle').textContent = title;
+            document.getElementById('selectedPackageDescription').textContent = description;
+            document.getElementById('packagePrice').value = price;
+            document.getElementById('packageType').value = type;
+            
+            // Auto-select student count based on package
+            const studentCountSelect = document.getElementById('studentCount');
+            if (packageId === 'small') {
+                studentCountSelect.value = '0-100';
+            } else if (packageId === 'medium') {
+                studentCountSelect.value = '100-500';
+            } else if (packageId === 'lifetime') {
+                studentCountSelect.value = '500+';
+            }
+            
+            // Show modal
+            openOrderModal();
+        }
+
+        function openOrderModal() {
+            const modal = document.getElementById('orderModal');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
+        }
+
+        function closeOrderModal() {
+            const modal = document.getElementById('orderModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = ''; // Restore scrolling
+        }
+
+        // Process order and redirect to WhatsApp
+        function processOrder() {
+            const name = document.getElementById('clientName').value;
+            const school = document.getElementById('schoolName').value;
+            const email = document.getElementById('clientEmail').value;
+            const phone = document.getElementById('clientPhone').value;
+            const studentCount = document.getElementById('studentCount').value;
+            
+            // Validate phone number (Kenyan format)
+            const phoneRegex = /^(\+254|0)[17]\d{8}$/;
+            if (!phoneRegex.test(phone.replace(/\s/g, ''))) {
+                alert('Please enter a valid Kenyan phone number (e.g., +2547XXXXXXXX or 07XXXXXXXX)');
+                return;
+            }
+            
+            // Format phone number for WhatsApp
+            let formattedPhone = phone.replace(/\s/g, '');
+            if (formattedPhone.startsWith('0')) {
+                formattedPhone = '+254' + formattedPhone.substring(1);
+            } else if (!formattedPhone.startsWith('+')) {
+                formattedPhone = '+' + formattedPhone;
+            }
+            
+            // Create WhatsApp message
+            const message = `*NEW ORDER - EduManage Pro*%0A%0A` +
+                           `*Client Details:*%0A` +
+                           `Name: ${name}%0A` +
+                           `School: ${school}%0A` +
+                           `Email: ${email}%0A` +
+                           `Phone: ${phone}%0A` +
+                           `Student Count: ${studentCount}%0A%0A` +
+                           `*Selected Package:*%0A` +
+                           `${selectedPackage.title}%0A` +
+                           `${selectedPackage.description}%0A` +
+                           `Price: Ksh. ${selectedPackage.price} ${selectedPackage.type}%0A%0A` +
+                           `*Order Date:* ${new Date().toLocaleDateString()}`;
+            
+            // WhatsApp URL
+            const whatsappUrl = `https://wa.me/254114963959?text=${message}`;
+            
+            // Open WhatsApp in new tab
+            window.open(whatsappUrl, '_blank');
+            
+            // Show confirmation
+            alert('Order submitted! You are being redirected to WhatsApp to complete your order. Our team will contact you within 24 hours.');
+            
+            // Reset form and close modal
+            document.getElementById('orderForm').reset();
+            closeOrderModal();
+            
+            // Track order (you could send to Google Analytics or other tracking here)
+            console.log('Order submitted:', {
+                name,
+                school,
+                email,
+                phone,
+                studentCount,
+                package: selectedPackage
+            });
+        }
+
+        // Redirect to login page
+        function redirectToLogin() {
+            // In production, this would redirect to the actual login page
+            alert('Redirecting to login page...\n\nIn the full implementation, this would navigate to the login system.');
+            // window.location.href = 'login.html';
+        }
+
+        // Scroll to pricing section
+        function scrollToPricing() {
+            const pricingSection = document.getElementById('pricing');
+            window.scrollTo({
+                top: pricingSection.offsetTop - 80,
+                behavior: 'smooth'
+            });
+        }
+
+        // Add some interactive animations
+        document.querySelectorAll('.feature-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-15px) scale(1.02)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // Add floating animation to dashboard items
+        document.querySelectorAll('.dashboard-item').forEach((item, index) => {
+            // Random animation delay
+            item.style.animationDelay = `${index * 0.1}s`;
+            
+            // Add hover effect
+            item.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.1)';
+                this.style.backgroundColor = '#4CAF50';
+            });
+            
+            item.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1)';
+                this.style.backgroundColor = '#F8F9FA';
+            });
+        });
+
+        // Add typing effect to hero title (optional)
+        const heroTitle = document.querySelector('.hero-title');
+        const originalText = heroTitle.textContent;
+        heroTitle.textContent = '';
+        
+        let charIndex = 0;
+        function typeWriter() {
+            if (charIndex < originalText.length) {
+                heroTitle.textContent += originalText.charAt(charIndex);
+                charIndex++;
+                setTimeout(typeWriter, 50);
+            }
+        }
+        
+        // Start typing after page loads
+        setTimeout(typeWriter, 500);
+
+        // Add confetti effect on CTA button click
+        document.querySelector('.cta-button').addEventListener('click', function(e) {
+            createConfetti();
+        });
+
+        // Add confetti effect on package selection
+        document.querySelectorAll('.pricing-button').forEach(button => {
+            button.addEventListener('click', function(e) {
+                createConfetti();
+            });
+        });
+
+        function createConfetti() {
+            const colors = ['#4CAF50', '#2E7D32', '#FFD700', '#FFC107', '#FFFFFF'];
+            const confettiCount = 100;
+            
+            for (let i = 0; i < confettiCount; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.position = 'fixed';
+                confetti.style.width = '10px';
+                confetti.style.height = '10px';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                confetti.style.left = `${Math.random() * 100}vw`;
+                confetti.style.top = '-20px';
+                confetti.style.zIndex = '9999';
+                confetti.style.opacity = '0.8';
+                
+                document.body.appendChild(confetti);
+                
+                // Animate confetti
+                const animation = confetti.animate([
+                    { transform: 'translateY(0) rotate(0deg)', opacity: 1 },
+                    { transform: `translateY(${window.innerHeight}px) rotate(${Math.random() * 720}deg)`, opacity: 0 }
+                ], {
+                    duration: Math.random() * 2000 + 1000,
+                    easing: 'cubic-bezier(0.215, 0.61, 0.355, 1)'
+                });
+                
+                animation.onfinish = () => confetti.remove();
+            }
+        }
+    </script>
+</body>
+</html>
