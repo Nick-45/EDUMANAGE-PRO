@@ -254,4 +254,73 @@ class PaymentService {
         currency: payment.currency,
         transactionId: payment.transactionId,
         createdAt: payment.createdAt,
-        completed
+        completedAt: payment.completedAt,
+        order: payment.order
+      };
+
+    } catch (error) {
+      logger.error('Error checking payment status:', error);
+      throw error;
+    }
+  }
+
+  // M-Pesa callback handler
+  async handleMpesaCallback(callbackData) {
+    try {
+      const { Body: { stkCallback: callback } } = callbackData;
+      
+      const payment = await Payment.findOne({ 
+        transactionId: callback.CheckoutRequestID 
+      });
+
+      if (!payment) {
+        logger.warn('M-Pesa callback for unknown payment:', callback.CheckoutRequestID);
+        return;
+      }
+
+      if (callback.ResultCode === 0) {
+        // Payment successful
+        payment.status = 'completed';
+        payment.completedAt = new Date();
+        payment.receiptNumber = callback.CallbackMetadata?.Item?.find(
+          item => item.Name === 'MpesaReceiptNumber'
+        )?.Value;
+        payment.mpesaResponse = callback;
+
+        await payment.save();
+
+        // Update order
+        await Order.findByIdAndUpdate(payment.order, {
+          'payment.status': 'completed',
+          'payment.receiptNumber': payment.receiptNumber,
+          'payment.paymentDate': new Date(),
+          status: 'confirmed'
+        });
+
+        logger.info(`M-Pesa payment completed for order ${payment.order.orderId}`);
+
+        // Send confirmation email
+        const emailService = require('./emailService');
+        await emailService.sendPaymentConfirmation(payment);
+
+      } else {
+        // Payment failed
+        payment.status = 'failed';
+        payment.mpesaResponse = callback;
+        await payment.save();
+
+        await Order.findByIdAndUpdate(payment.order, {
+          'payment.status': 'failed',
+          status: 'failed'
+        });
+
+        logger.warn(`M-Pesa payment failed for order ${payment.order.orderId}:`, callback.ResultDesc);
+      }
+
+    } catch (error) {
+      logger.error('Error handling M-Pesa callback:', error);
+    }
+  }
+}
+
+module.exports = new PaymentService();
