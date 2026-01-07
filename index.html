@@ -1,0 +1,2937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduManage Pro | Smart School Management System</title>
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --light-green: #4CAF50;
+            --dark-green: #2E7D32;
+            --golden: #FFD700;
+            --white: #FFFFFF;
+            --light-gray: #F8F9FA;
+            --gray: #6C757D;
+            --dark-gray: #343A40;
+            --gradient-green: linear-gradient(135deg, #4CAF50, #2E7D32);
+            --gradient-gold: linear-gradient(135deg, #FFD700, #FFC107);
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            --danger: #dc3545;
+            --success: #28a745;
+            --warning: #ffc107;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Custom Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        @keyframes slideInLeft {
+            from { transform: translateX(-100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 1.5rem 5%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+            transition: var(--transition);
+        }
+
+        .navbar.scrolled {
+            padding: 1rem 5%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 1.5rem;
+            animation: rotate 20s linear infinite;
+        }
+
+        .logo-text {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900;
+            font-size: 1.8rem;
+            background: var(--gradient-green);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--dark-gray);
+            font-weight: 500;
+            position: relative;
+            padding: 0.5rem 0;
+            transition: var(--transition);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: var(--gradient-green);
+            transition: var(--transition);
+            border-radius: 3px;
+        }
+
+        .nav-link:hover {
+            color: var(--light-green);
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .login-btn {
+            padding: 0.8rem 2rem;
+            background: var(--gradient-green);
+            color: var(--white);
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(76, 175, 80, 0.4);
+        }
+
+        .login-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .login-btn:hover::before {
+            left: 100%;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 8% 5% 5%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            flex: 1;
+            max-width: 600px;
+            z-index: 2;
+        }
+
+        .hero-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 4rem;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: var(--gradient-green);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: slideInLeft 1s ease-out;
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            color: var(--gray);
+            margin-bottom: 2rem;
+            animation: slideInLeft 1s ease-out 0.2s both;
+        }
+
+        .hero-description {
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+            color: var(--dark-gray);
+            animation: slideInLeft 1s ease-out 0.4s both;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1.5rem;
+            animation: slideInLeft 1s ease-out 0.6s both;
+        }
+
+        .btn {
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: var(--gradient-green);
+            color: var(--white);
+            box-shadow: 0 10px 25px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--white);
+            color: var(--light-green);
+            border: 2px solid var(--light-green);
+        }
+
+        .btn-secondary:hover {
+            background: var(--light-green);
+            color: var(--white);
+            transform: translateY(-5px);
+        }
+
+        .hero-visual {
+            flex: 1;
+            position: relative;
+            height: 600px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .floating-elements {
+            position: relative;
+            width: 500px;
+            height: 500px;
+        }
+
+        .main-dashboard {
+            width: 400px;
+            height: 300px;
+            background: var(--white);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            overflow: hidden;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .dashboard-content {
+            padding: 1.5rem;
+            height: 100%;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 0.5rem;
+        }
+
+        .dashboard-item {
+            background: var(--light-gray);
+            border-radius: 10px;
+            transition: var(--transition);
+        }
+
+        .dashboard-item:hover {
+            background: var(--light-green);
+            transform: scale(1.05);
+        }
+
+        .floating-element {
+            position: absolute;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow);
+            animation: float 4s ease-in-out infinite;
+            animation-delay: var(--delay);
+        }
+
+        .element-1 {
+            width: 120px;
+            height: 120px;
+            background: var(--gradient-green);
+            top: 0;
+            right: 0;
+            animation-delay: 0s;
+            color: var(--white);
+            font-size: 2.5rem;
+        }
+
+        .element-2 {
+            width: 100px;
+            height: 100px;
+            background: var(--gradient-gold);
+            bottom: 0;
+            left: 0;
+            animation-delay: 1s;
+            color: var(--dark-gray);
+            font-size: 2rem;
+        }
+
+        .element-3 {
+            width: 80px;
+            height: 80px;
+            background: var(--white);
+            top: 20%;
+            left: 0;
+            animation-delay: 2s;
+            color: var(--light-green);
+            font-size: 1.8rem;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 8rem 5%;
+            background: var(--white);
+            position: relative;
+        }
+
+        .section-title {
+            text-align: center;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            background: var(--gradient-green);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: var(--gray);
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto 4rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2.5rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background: var(--light-gray);
+            border-radius: 20px;
+            padding: 2.5rem;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            border: 2px solid transparent;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow);
+            border-color: var(--light-green);
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: var(--gradient-green);
+            transform: scaleX(0);
+            transition: var(--transition);
+            transform-origin: left;
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--gradient-green);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: var(--white);
+            font-size: 2rem;
+            transition: var(--transition);
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: rotateY(180deg);
+            background: var(--gradient-gold);
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--dark-gray);
+        }
+
+        .feature-description {
+            color: var(--gray);
+            line-height: 1.6;
+        }
+
+        /* Pricing Section */
+        .pricing-section {
+            padding: 8rem 5%;
+            background: var(--light-gray);
+            position: relative;
+        }
+
+        .pricing-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .pricing-intro {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .pricing-intro h2 {
+            font-size: 1.2rem;
+            color: var(--light-green);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .pricing-card {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 3rem;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+            position: relative;
+            border: 2px solid transparent;
+            overflow: hidden;
+        }
+
+        .pricing-card.featured {
+            border-color: var(--golden);
+            transform: scale(1.05);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .pricing-card.featured::before {
+            content: 'Most Popular';
+            position: absolute;
+            top: 20px;
+            right: -35px;
+            background: var(--gradient-gold);
+            color: var(--dark-gray);
+            padding: 0.5rem 3rem;
+            transform: rotate(45deg);
+            font-weight: 600;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .pricing-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid var(--light-gray);
+        }
+
+        .pricing-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--dark-gray);
+            margin-bottom: 1rem;
+        }
+
+        .pricing-subtitle {
+            color: var(--gray);
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .pricing-amount {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .price {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: var(--dark-green);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .price-suffix {
+            font-size: 1rem;
+            color: var(--gray);
+            font-weight: 500;
+        }
+
+        .price-note {
+            font-size: 0.9rem;
+            color: var(--gray);
+            font-style: italic;
+        }
+
+        .pricing-features {
+            list-style: none;
+            margin-bottom: 3rem;
+        }
+
+        .pricing-features li {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.8rem;
+            color: var(--dark-gray);
+        }
+
+        .pricing-features li i {
+            color: var(--light-green);
+            font-size: 1.1rem;
+            margin-top: 0.2rem;
+            flex-shrink: 0;
+        }
+
+        .pricing-features li.disabled {
+            color: #ccc;
+        }
+
+        .pricing-features li.disabled i {
+            color: #ccc;
+        }
+
+        .pricing-button {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+        }
+
+        .btn-standard {
+            background: var(--gradient-green);
+            color: var(--white);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-standard:hover {
+            background: var(--dark-green);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(46, 125, 50, 0.4);
+        }
+
+        .btn-premium {
+            background: var(--gradient-gold);
+            color: var(--dark-gray);
+            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
+        }
+
+        .btn-premium:hover {
+            background: #ffc107;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 193, 7, 0.4);
+        }
+
+        /* Modal System */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .order-modal {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 3rem;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+            animation: slideInUp 0.4s ease;
+        }
+
+        @keyframes slideInUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .modal-header h2 {
+            font-size: 2rem;
+            color: var(--dark-green);
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-header p {
+            color: var(--gray);
+            font-size: 1rem;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--gray);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .close-modal:hover {
+            color: var(--dark-green);
+            transform: rotate(90deg);
+        }
+
+        .order-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: var(--dark-gray);
+            font-size: 0.95rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 0.9rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: var(--transition);
+            background: var(--light-gray);
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--light-green);
+            background: var(--white);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+
+        .file-upload {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-upload input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-upload label {
+            display: block;
+            padding: 1rem;
+            background: var(--light-gray);
+            border: 2px dashed #e0e0e0;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .file-upload label:hover {
+            border-color: var(--light-green);
+            background: rgba(76, 175, 80, 0.05);
+        }
+
+        .file-upload label i {
+            margin-right: 0.5rem;
+        }
+
+        .form-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .form-steps::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: #e0e0e0;
+            z-index: 1;
+        }
+
+        .form-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+            flex: 1;
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            color: var(--gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            transition: var(--transition);
+        }
+
+        .form-step.active .step-number {
+            background: var(--gradient-green);
+            color: var(--white);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .form-step.completed .step-number {
+            background: var(--success);
+            color: var(--white);
+        }
+
+        .step-label {
+            font-size: 0.9rem;
+            color: var(--gray);
+            text-align: center;
+        }
+
+        .form-step.active .step-label {
+            color: var(--dark-green);
+            font-weight: 600;
+        }
+
+        .form-section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        .payment-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .payment-option {
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .payment-option:hover {
+            border-color: var(--light-green);
+            transform: translateY(-3px);
+        }
+
+        .payment-option.selected {
+            border-color: var(--light-green);
+            background: rgba(76, 175, 80, 0.05);
+        }
+
+        .payment-option i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .payment-details {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--light-gray);
+            border-radius: 10px;
+            display: none;
+        }
+
+        .payment-details.active {
+            display: block;
+        }
+
+        .loading-spinner {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .loading-spinner.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--light-green);
+            border-radius: 50%;
+            animation: rotate 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        .success-message {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .success-message.active {
+            display: flex;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            animation: bounce 0.5s ease infinite alternate;
+        }
+
+        .download-section {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .download-section.active {
+            display: flex;
+        }
+
+        .download-button {
+            padding: 1rem 2rem;
+            background: var(--gradient-green);
+            color: var(--white);
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-top: 1rem;
+            text-decoration: none;
+        }
+
+        .download-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(46, 125, 50, 0.4);
+        }
+
+        .error-message {
+            color: var(--danger);
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        .form-group.error input,
+        .form-group.error select,
+        .form-group.error textarea {
+            border-color: var(--danger);
+        }
+
+        .package-summary {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid var(--light-green);
+        }
+
+        .package-summary h4 {
+            color: var(--dark-green);
+            margin-bottom: 0.8rem;
+            font-size: 1.1rem;
+        }
+
+        .package-summary p {
+            color: var(--dark-gray);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .form-disclaimer {
+            font-size: 0.85rem;
+            color: var(--gray);
+            text-align: center;
+            margin-top: 1rem;
+            line-height: 1.5;
+        }
+
+        .form-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+        }
+
+        .btn-prev,
+        .btn-next,
+        .submit-order {
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-prev {
+            background: var(--light-gray);
+            color: var(--dark-gray);
+        }
+
+        .btn-prev:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-next,
+        .submit-order {
+            background: var(--gradient-green);
+            color: var(--white);
+        }
+
+        .btn-next:hover,
+        .submit-order:hover {
+            background: var(--dark-green);
+            transform: translateY(-3px);
+        }
+
+        /* Stats Section */
+        .stats {
+            padding: 6rem 5%;
+            background: var(--gradient-green);
+            color: var(--white);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23000000' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+            opacity: 0.1;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 3rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            transition: var(--transition);
+        }
+
+        .stat-item:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-number {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+            display: block;
+            position: relative;
+        }
+
+        .stat-number::after {
+            content: '+';
+            color: var(--golden);
+        }
+
+        .stat-label {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        /* Testimonials */
+        .testimonials {
+            padding: 8rem 5%;
+            background: var(--light-gray);
+        }
+
+        .testimonial-slider {
+            max-width: 1000px;
+            margin: 4rem auto 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .testimonial-track {
+            display: flex;
+            transition: transform 0.5s ease;
+        }
+
+        .testimonial-card {
+            min-width: 100%;
+            background: var(--white);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .testimonial-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 1.5rem;
+            border: 5px solid var(--light-green);
+            overflow: hidden;
+        }
+
+        .testimonial-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .testimonial-text {
+            font-size: 1.2rem;
+            font-style: italic;
+            color: var(--dark-gray);
+            margin-bottom: 2rem;
+            line-height: 1.8;
+        }
+
+        .testimonial-author {
+            font-weight: 600;
+            color: var(--light-green);
+            font-size: 1.1rem;
+        }
+
+        .slider-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .slider-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--white);
+            border: 2px solid var(--light-green);
+            color: var(--light-green);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .slider-btn:hover {
+            background: var(--light-green);
+            color: var(--white);
+            transform: scale(1.1);
+        }
+
+        /* CTA Section */
+        .cta-section {
+            padding: 8rem 5%;
+            background: var(--gradient-green);
+            color: var(--white);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: rotate 100s linear infinite;
+            z-index: 1;
+        }
+
+        .cta-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .cta-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+        }
+
+        .cta-subtitle {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            margin-bottom: 3rem;
+        }
+
+        .cta-button {
+            padding: 1.2rem 3rem;
+            font-size: 1.2rem;
+            background: var(--gradient-gold);
+            color: var(--dark-gray);
+            border: none;
+            border-radius: 50px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--dark-gray);
+            color: var(--white);
+            padding: 5rem 5% 2rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-logo-text {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900;
+            font-size: 2rem;
+            background: var(--gradient-green);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .footer-description {
+            color: #aaa;
+            line-height: 1.6;
+        }
+
+        .footer-heading {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--white);
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-link {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-link a {
+            color: #aaa;
+            text-decoration: none;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .footer-link a:hover {
+            color: var(--light-green);
+            transform: translateX(5px);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .social-link {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .social-link:hover {
+            background: var(--light-green);
+            transform: translateY(-5px);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .hero {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .hero-content {
+                margin-bottom: 4rem;
+            }
+            
+            .hero-title {
+                font-size: 3rem;
+            }
+            
+            .cta-buttons {
+                justify-content: center;
+            }
+            
+            .floating-elements {
+                width: 400px;
+                height: 400px;
+            }
+            
+            .pricing-card.featured {
+                transform: scale(1);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .section-title {
+                font-size: 2.5rem;
+            }
+            
+            .stat-number {
+                font-size: 2.5rem;
+            }
+            
+            .cta-title {
+                font-size: 2.5rem;
+            }
+            
+            .floating-elements {
+                width: 300px;
+                height: 300px;
+            }
+            
+            .main-dashboard {
+                width: 300px;
+                height: 250px;
+            }
+            
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .order-modal {
+                padding: 2rem;
+                width: 95%;
+            }
+            
+            .payment-options {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Particle Background */
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            background: var(--light-green);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float 15s infinite linear;
+        }
+
+        /* Scroll Animation */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Order Modal -->
+    <div class="modal-overlay" id="orderModal">
+        <div class="order-modal">
+            <button class="close-modal" id="closeModal">&times;</button>
+            
+            <!-- Package Summary -->
+            <div class="modal-header">
+                <h2 id="modalTitle">Order EduManage Pro</h2>
+                <p id="modalSubtitle">Complete the form below to get your customized school management system</p>
+            </div>
+            
+            <div class="package-summary">
+                <h4 id="selectedPackageTitle">Small School Package</h4>
+                <p id="selectedPackageDescription">Ksh. 1,500 per term for schools with 0-100 students</p>
+                <p><strong>Total: <span id="packagePriceDisplay">1,500</span> Ksh</strong></p>
+            </div>
+            
+            <!-- Form Steps -->
+            <div class="form-steps">
+                <div class="form-step active" data-step="1">
+                    <div class="step-number">1</div>
+                    <div class="step-label">Payment</div>
+                </div>
+                <div class="form-step" data-step="2">
+                    <div class="step-number">2</div>
+                    <div class="step-label">School Setup</div>
+                </div>
+                <div class="form-step" data-step="3">
+                    <div class="step-number">3</div>
+                    <div class="step-label">Download</div>
+                </div>
+            </div>
+            
+            <!-- Payment Section -->
+            <div class="form-section active" id="paymentSection">
+                <h3>Select Payment Method</h3>
+                <div class="payment-options">
+                    <div class="payment-option" data-method="mpesa">
+                        <i class="fas fa-mobile-alt"></i>
+                        <span>M-Pesa</span>
+                    </div>
+                    <div class="payment-option" data-method="card">
+                        <i class="fas fa-credit-card"></i>
+                        <span>Card</span>
+                    </div>
+                    <div class="payment-option" data-method="bank">
+                        <i class="fas fa-university"></i>
+                        <span>Bank Transfer</span>
+                    </div>
+                </div>
+                
+                <div class="payment-details" id="mpesaDetails">
+                    <h4>M-Pesa Payment</h4>
+                    <p>Pay to Till Number: <strong>123456</strong></p>
+                    <p>Account Name: <strong>EduManage Pro</strong></p>
+                    <p>Enter your M-Pesa phone number:</p>
+                    <div class="form-group">
+                        <input type="tel" id="mpesaPhone" placeholder="07XXXXXXXX">
+                        <div class="error-message" id="mpesaPhoneError"></div>
+                    </div>
+                    <button class="btn-next" onclick="initiatePayment()">
+                        <i class="fas fa-lock"></i> Initiate Payment
+                    </button>
+                </div>
+                
+                <div class="payment-details" id="cardDetails">
+                    <h4>Card Payment</h4>
+                    <div class="form-group">
+                        <label for="cardNumber">Card Number</label>
+                        <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456">
+                        <div class="error-message" id="cardNumberError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="cardExpiry">Expiry Date</label>
+                        <input type="text" id="cardExpiry" placeholder="MM/YY">
+                        <div class="error-message" id="cardExpiryError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="cardCVC">CVC</label>
+                        <input type="text" id="cardCVC" placeholder="123">
+                        <div class="error-message" id="cardCVCError"></div>
+                    </div>
+                    <button class="btn-next" onclick="processCardPayment()">
+                        <i class="fas fa-lock"></i> Pay Now
+                    </button>
+                </div>
+                
+                <div class="payment-details" id="bankDetails">
+                    <h4>Bank Transfer</h4>
+                    <p><strong>Bank:</strong> Equity Bank</p>
+                    <p><strong>Account Name:</strong> EduManage Pro Ltd</p>
+                    <p><strong>Account Number:</strong> 1234567890</p>
+                    <p><strong>Branch:</strong> Nairobi CBD</p>
+                    <p>After payment, upload proof below:</p>
+                    <div class="form-group">
+                        <div class="file-upload">
+                            <input type="file" id="paymentProof" accept="image/*,.pdf">
+                            <label for="paymentProof">
+                                <i class="fas fa-upload"></i> Upload Payment Proof
+                            </label>
+                        </div>
+                        <div class="error-message" id="paymentProofError"></div>
+                    </div>
+                    <button class="btn-next" onclick="verifyBankPayment()">
+                        <i class="fas fa-check-circle"></i> Verify Payment
+                    </button>
+                </div>
+            </div>
+            
+            <!-- School Setup Section -->
+            <div class="form-section" id="schoolSetupSection">
+                <h3>School Information</h3>
+                <form id="schoolSetupForm">
+                    <div class="form-group">
+                        <label for="schoolName">School Name *</label>
+                        <input type="text" id="schoolName" placeholder="Enter school name" required>
+                        <div class="error-message" id="schoolNameError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="schoolLogo">School Logo</label>
+                        <div class="file-upload">
+                            <input type="file" id="schoolLogo" accept="image/*">
+                            <label for="schoolLogo">
+                                <i class="fas fa-image"></i> Upload School Logo
+                            </label>
+                        </div>
+                        <div class="error-message" id="schoolLogoError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="schoolMotto">School Motto</label>
+                        <input type="text" id="schoolMotto" placeholder="Enter school motto">
+                        <div class="error-message" id="schoolMottoError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="schoolAddress">School Address</label>
+                        <textarea id="schoolAddress" rows="3" placeholder="Enter school address"></textarea>
+                        <div class="error-message" id="schoolAddressError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="adminEmail">Admin Email *</label>
+                        <input type="email" id="adminEmail" placeholder="Enter admin email" required>
+                        <div class="error-message" id="adminEmailError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="adminPassword">Admin Password *</label>
+                        <input type="password" id="adminPassword" placeholder="Enter admin password" required>
+                        <div class="error-message" id="adminPasswordError"></div>
+                    </div>
+                    
+                    <div class="form-navigation">
+                        <button type="button" class="btn-prev" onclick="prevStep()">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <button type="submit" class="submit-order">
+                            <i class="fas fa-save"></i> Save & Build System
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Loading Section -->
+            <div class="loading-spinner" id="loadingSection">
+                <div class="spinner"></div>
+                <h3>Building Your System...</h3>
+                <p>Please wait while we customize your school management system</p>
+                <p id="progressText">Initializing build process...</p>
+            </div>
+            
+            <!-- Success Section -->
+            <div class="success-message" id="successSection">
+                <div class="success-icon">
+                    <i class="fas fa-check"></i>
+                </div>
+                <h3>System Ready!</h3>
+                <p>Your customized school management system has been built successfully.</p>
+            </div>
+            
+            <!-- Download Section -->
+            <div class="download-section" id="downloadSection">
+                <h3>Download Your System</h3>
+                <p>Your customized school management system is ready for download.</p>
+                <a href="#" class="download-button" id="downloadLink">
+                    <i class="fas fa-download"></i> Download Now
+                </a>
+                <p class="form-disclaimer">
+                    <strong>Installation Instructions:</strong><br>
+                    1. Extract the downloaded ZIP file<br>
+                    2. Upload to your web hosting server<br>
+                    3. Run the setup script at yourdomain.com/setup<br>
+                    4. Follow the on-screen instructions
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <div class="logo-text">EduManage Pro</div>
+        </div>
+        
+        <div class="nav-links">
+            <a href="#features" class="nav-link">Features</a>
+            <a href="#pricing" class="nav-link">Pricing</a>
+            <a href="#stats" class="nav-link">Statistics</a>
+            <a href="#testimonials" class="nav-link">Testimonials</a>
+            <a href="#contact" class="nav-link">Contact</a>
+        </div>
+        
+        <button class="login-btn" onclick="redirectToLogin()">
+            <i class="fas fa-sign-in-alt"></i> Login
+        </button>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="particles" id="particles"></div>
+        
+        <div class="hero-content">
+            <h1 class="hero-title reveal">Transform Your School Management</h1>
+            <p class="hero-subtitle reveal">The Complete Digital Solution for Modern Education</p>
+            <p class="hero-description reveal">
+                EduManage Pro is an all-in-one school management system that simplifies administration, 
+                enhances teaching, and improves learning outcomes. Join thousands of schools already 
+                benefiting from our platform.
+            </p>
+            <div class="cta-buttons reveal">
+                <a href="#pricing" class="btn btn-primary">
+                    <i class="fas fa-tags"></i> View Pricing
+                </a>
+                <a href="#features" class="btn btn-secondary">
+                    <i class="fas fa-search"></i> Explore Features
+                </a>
+            </div>
+        </div>
+        
+        <div class="hero-visual">
+            <div class="floating-elements">
+                <div class="main-dashboard">
+                    <div class="dashboard-content">
+                        <div class="dashboard-item"></div>
+                        <div class="dashboard-item"></div>
+                        <div class="dashboard-item"></div>
+                        <div class="dashboard-item"></div>
+                        <div class="dashboard-item"></div>
+                        <div class="dashboard-item"></div>
+                        <div class="dashboard-item"></div>
+                        <div class="dashboard-item"></div>
+                        <div class="dashboard-item"></div>
+                        <div class="dashboard-item"></div>
+                        <div class="dashboard-item"></div>
+                        <div class="dashboard-item"></div>
+                    </div>
+                </div>
+                
+                <div class="floating-element element-1">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                
+                <div class="floating-element element-2">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                
+                <div class="floating-element element-3">
+                    <i class="fas fa-book-open"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <h2 class="section-title reveal">Powerful Features</h2>
+        <p class="section-subtitle reveal">Everything you need to manage your school efficiently</p>
+        
+        <div class="features-grid">
+            <div class="feature-card reveal">
+                <div class="feature-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3 class="feature-title">Student Management</h3>
+                <p class="feature-description">
+                    Complete student profiles, attendance tracking, behavior monitoring, 
+                    and academic performance analysis in one place.
+                </p>
+            </div>
+            
+            <div class="feature-card reveal">
+                <div class="feature-icon">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <h3 class="feature-title">Teacher Portal</h3>
+                <p class="feature-description">
+                    Lesson planning, gradebook, assignment distribution, and parent 
+                    communication tools for educators.
+                </p>
+            </div>
+            
+            <div class="feature-card reveal">
+                <div class="feature-icon">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                </div>
+                <h3 class="feature-title">Finance Management</h3>
+                <p class="feature-description">
+                    Automated fee collection, expense tracking, payroll management, 
+                    and financial reporting for complete transparency.
+                </p>
+            </div>
+            
+            <div class="feature-card reveal">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <h3 class="feature-title">Smart Reporting</h3>
+                <p class="feature-description">
+                    Generate comprehensive reports, academic transcripts, and 
+                    performance analytics with real-time data visualization.
+                </p>
+            </div>
+            
+            <div class="feature-card reveal">
+                <div class="feature-icon">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <h3 class="feature-title">Mobile Access</h3>
+                <p class="feature-description">
+                    Access the system from any device. Dedicated mobile apps for 
+                    teachers, students, and parents with push notifications.
+                </p>
+            </div>
+            
+            <div class="feature-card reveal">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3 class="feature-title">Security & Privacy</h3>
+                <p class="feature-description">
+                    Enterprise-grade security with role-based access control, 
+                    data encryption, and GDPR compliance for complete peace of mind.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing-section" id="pricing">
+        <div class="pricing-container">
+            <div class="section-header reveal">
+                <h2 class="section-title">Affordable Pricing Plans</h2>
+                <p class="section-subtitle">
+                    Choose the perfect plan for your school's needs. All plans include setup, 
+                    training, and ongoing support.
+                </p>
+            </div>
+            
+            <div class="pricing-grid">
+                <!-- Small School Package -->
+                <div class="pricing-card reveal">
+                    <div class="pricing-header">
+                        <h3 class="pricing-title">Small School Package</h3>
+                        <p class="pricing-subtitle">Perfect for schools with 0-100 students</p>
+                    </div>
+                    
+                    <div class="pricing-amount">
+                        <div class="price">Ksh. 1,500</div>
+                        <div class="price-suffix">per term</div>
+                        <div class="price-note">Billed termly</div>
+                    </div>
+                    
+                    <ul class="pricing-features">
+                        <li><i class="fas fa-check"></i> Full System Access</li>
+                        <li><i class="fas fa-check"></i> Up to 100 Students</li>
+                        <li><i class="fas fa-check"></i> Up to 15 Teachers</li>
+                        <li><i class="fas fa-check"></i> Basic Reporting</li>
+                        <li><i class="fas fa-check"></i> Email Support</li>
+                        <li><i class="fas fa-check"></i> Mobile App Access</li>
+                        <li><i class="fas fa-check"></i> 2 Staff Training Sessions</li>
+                        <li><i class="fas fa-check"></i> System Setup Included</li>
+                    </ul>
+                    
+                    <button class="pricing-button btn-standard" onclick="selectPackage('small', 'Small School Package', 'Ksh. 1,500 per term for schools with 0-100 students', '1500', 'per term')">
+                        <i class="fas fa-shopping-cart"></i> Get This Package
+                    </button>
+                </div>
+                
+                <!-- Medium School Package -->
+                <div class="pricing-card featured reveal">
+                    <div class="pricing-header">
+                        <h3 class="pricing-title">Medium School Package</h3>
+                        <p class="pricing-subtitle">Ideal for schools with 100-500 students</p>
+                    </div>
+                    
+                    <div class="pricing-amount">
+                        <div class="price">Ksh. 3,500</div>
+                        <div class="price-suffix">per term</div>
+                        <div class="price-note">Most Popular Choice</div>
+                    </div>
+                    
+                    <ul class="pricing-features">
+                        <li><i class="fas fa-check"></i> Everything in Small Package</li>
+                        <li><i class="fas fa-check"></i> Up to 500 Students</li>
+                        <li><i class="fas fa-check"></i> Up to 40 Teachers</li>
+                        <li><i class="fas fa-check"></i> Advanced Reporting</li>
+                        <li><i class="fas fa-check"></i> Priority Email & Phone Support</li>
+                        <li><i class="fas fa-check"></i> Custom Branding</li>
+                        <li><i class="fas fa-check"></i> 4 Staff Training Sessions</li>
+                        <li><i class="fas fa-check"></i> Data Migration Assistance</li>
+                    </ul>
+                    
+                    <button class="pricing-button btn-premium" onclick="selectPackage('medium', 'Medium School Package', 'Ksh. 3,500 per term for schools with 100-500 students', '3500', 'per term')">
+                        <i class="fas fa-crown"></i> Get This Package
+                    </button>
+                </div>
+                
+                <!-- One-Time Purchase -->
+                <div class="pricing-card reveal">
+                    <div class="pricing-header">
+                        <h3 class="pricing-title">One-Time Purchase</h3>
+                        <p class="pricing-subtitle">Own the system forever</p>
+                    </div>
+                    
+                    <div class="pricing-amount">
+                        <div class="price">Ksh. 29,999</div>
+                        <div class="price-suffix">one-time payment</div>
+                        <div class="price-note">Lifetime ownership</div>
+                    </div>
+                    
+                    <ul class="pricing-features">
+                        <li><i class="fas fa-check"></i> Full System Ownership</li>
+                        <li><i class="fas fa-check"></i> Unlimited Students & Teachers</li>
+                        <li><i class="fas fa-check"></i> All Premium Features</li>
+                        <li><i class="fas fa-check"></i> Priority 24/7 Support</li>
+                        <li><i class="fas fa-check"></i> Full Staff Training Program</li>
+                        <li><i class="fas fa-check"></i> Custom Development Hours</li>
+                        <li><i class="fas fa-check"></i> White-label Option</li>
+                        <li><i class="fas fa-check"></i> Source Code Access</li>
+                    </ul>
+                    
+                    <button class="pricing-button btn-standard" onclick="selectPackage('lifetime', 'One-Time Purchase Package', 'Ksh. 29,999 one-time payment - Full system ownership with unlimited students and teachers', '29999', 'one-time')">
+                        <i class="fas fa-gem"></i> Buy Once, Use Forever
+                    </button>
+                </div>
+            </div>
+            
+            <div class="pricing-intro reveal">
+                <h2>Why Choose EduManage Pro?</h2>
+                <p class="section-subtitle" style="margin-top: 1rem;">
+                    All packages include comprehensive staff training, system setup, and dedicated support. 
+                    No hidden fees. Cancel anytime (subscription plans only).
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats" id="stats">
+        <div class="stats-grid">
+            <div class="stat-item reveal">
+                <span class="stat-number" data-target="500">0</span>
+                <span class="stat-label">Schools Trust Us</span>
+            </div>
+            
+            <div class="stat-item reveal">
+                <span class="stat-number" data-target="75000">0</span>
+                <span class="stat-label">Active Students</span>
+            </div>
+            
+            <div class="stat-item reveal">
+                <span class="stat-number" data-target="15000">0</span>
+                <span class="stat-label">Teachers Empowered</span>
+            </div>
+            
+            <div class="stat-item reveal">
+                <span class="stat-number" data-target="99">0</span>
+                <span class="stat-label">Satisfaction Rate</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="testimonials" id="testimonials">
+        <h2 class="section-title reveal">What Our Clients Say</h2>
+        <p class="section-subtitle reveal">Hear from schools that transformed their operations</p>
+        
+        <div class="testimonial-slider">
+            <div class="testimonial-track" id="testimonialTrack">
+                <div class="testimonial-card">
+                    <div class="testimonial-avatar">
+                        <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Principal">
+                    </div>
+                    <p class="testimonial-text">
+                        "EduManage Pro revolutionized our school administration. What used to take days now 
+                        takes minutes. The reporting features alone have saved us countless hours."
+                    </p>
+                    <p class="testimonial-author">- Dr. James Wilson, Principal</p>
+                </div>
+                
+                <div class="testimonial-card">
+                    <div class="testimonial-avatar">
+                        <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Teacher">
+                    </div>
+                    <p class="testimonial-text">
+                        "As a teacher, the gradebook and lesson planning tools have made my job so much easier. 
+                        I can focus more on teaching and less on paperwork."
+                    </p>
+                    <testimonial-author">- Sarah Johnson, Mathematics Teacher</p>
+                </div>
+                
+                <div class="testimonial-card">
+                    <div class="testimonial-avatar">
+                        <img src="https://randomuser.me/api/portraits/men/67.jpg" alt="Parent">
+                    </div>
+                    <p class="testimonial-text">
+                        "The parent portal keeps me updated on my child's progress in real-time. Fee payments 
+                        are seamless, and communication with teachers has never been better."
+                    </p>
+                    <p class="testimonial-author">- Michael Brown, Parent</p>
+                </div>
+            </div>
+            
+            <div class="slider-controls">
+                <button class="slider-btn prev-btn" onclick="prevTestimonial()">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="slider-btn next-btn" onclick="nextTestimonial()">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section" id="cta">
+        <div class="cta-content">
+            <h2 class="cta-title reveal">Ready to Transform Your School?</h2>
+            <p class="cta-subtitle reveal">
+                Join thousands of educational institutions using EduManage Pro to streamline their operations
+            </p>
+            <button class="cta-button reveal" onclick="scrollToPricing()">
+                <i class="fas fa-rocket"></i> Choose Your Package
+            </button>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer" id="contact">
+        <div class="footer-content">
+            <div class="footer-about">
+                <div class="footer-logo">
+                    <div class="logo-icon" style="width: 40px; height: 40px; font-size: 1.2rem;">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <div class="footer-logo-text">EduManage Pro</div>
+                </div>
+                <p class="footer-description">
+                    The complete school management solution for the digital age. 
+                    Streamline operations, enhance learning, and empower educators.
+                </p>
+                <div class="social-links">
+                    <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            
+            <div class="footer-links-section">
+                <h3 class="footer-heading">Quick Links</h3>
+                <ul class="footer-links">
+                    <li class="footer-link"><a href="#features"><i class="fas fa-chevron-right"></i> Features</a></li>
+                    <li class="footer-link"><a href="#pricing"><i class="fas fa-chevron-right"></i> Pricing</a></li>
+                    <li class="footer-link"><a href="#stats"><i class="fas fa-chevron-right"></i> Statistics</a></li>
+                    <li class="footer-link"><a href="#testimonials"><i class="fas fa-chevron-right"></i> Testimonials</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-links-section">
+                <h3 class="footer-heading">Packages</h3>
+                <ul class="footer-links">
+                    <li class="footer-link"><a href="#pricing"><i class="fas fa-chevron-right"></i> Small School (0-100)</a></li>
+                    <li class="footer-link"><a href="#pricing"><i class="fas fa-chevron-right"></i> Medium School (100-500)</a></li>
+                    <li class="footer-link"><a href="#pricing"><i class="fas fa-chevron-right"></i> One-Time Purchase</a></li>
+                    <li class="footer-link"><a href="#pricing"><i class="fas fa-chevron-right"></i> Custom Enterprise</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-contact">
+                <h3 class="footer-heading">Contact Us</h3>
+                <ul class="footer-links">
+                    <li class="footer-link">
+                        <a href="#"><i class="fas fa-map-marker-alt"></i> Nairobi, Kenya</a>
+                    </li>
+                    <li class="footer-link">
+                        <a href="mailto:info@edumanagepro.com"><i class="fas fa-envelope"></i> info@edumanagepro.com</a>
+                    </li>
+                    <li class="footer-link">
+                        <a href="tel:+254114963959"><i class="fab fa-whatsapp"></i> +254 114 963 959</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+       <div class="footer-bottom">
+    <p>&copy; <span id="year"></span> EduManage Pro. All rights reserved. | Designed with 
+        <i class="fas fa-heart" style="color: #ff4757;"></i> for education
+    </p>
+</div>
+
+<script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+</script>
+
+    </footer>
+
+    <script>
+        // Backend API Configuration
+        const BACKEND_API = 'https://your-backend-api.com'; // Replace with your backend URL
+        let selectedPackage = null;
+        let currentStep = 1;
+        let selectedPaymentMethod = null;
+        let orderId = null;
+        let buildId = null;
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create particles background
+            createParticles();
+            
+            // Initialize animations
+            initAnimations();
+            
+            // Initialize testimonial slider
+            initTestimonialSlider();
+            
+            // Initialize counter animation
+            initCounters();
+            
+            // Setup scroll events
+            setupScrollEvents();
+            
+            // Setup navbar scroll effect
+            setupNavbar();
+            
+            // Setup modal functionality
+            setupModal();
+            
+            // Setup payment options
+            setupPaymentOptions();
+            
+            // Setup school form
+            setupSchoolForm();
+        });
+
+        // Create animated particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 50;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                const size = Math.random() * 15 + 5;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                
+                const delay = Math.random() * 10;
+                const duration = Math.random() * 20 + 10;
+                particle.style.animationDelay = `${delay}s`;
+                particle.style.animationDuration = `${duration}s`;
+                
+                const hue = 120 + Math.random() * 40;
+                particle.style.backgroundColor = `hsl(${hue}, 70%, 60%)`;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Initialize animations
+        function initAnimations() {
+            const revealElements = document.querySelectorAll('.reveal');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                        
+                        if (entry.target.classList.contains('stat-number')) {
+                            animateCounter(entry.target);
+                        }
+                    }
+                });
+            }, {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            });
+            
+            revealElements.forEach(el => observer.observe(el));
+        }
+
+        // Animate counters
+        function animateCounter(element) {
+            const target = parseInt(element.getAttribute('data-target'));
+            const duration = 2000;
+            const step = target / (duration / 16);
+            let current = 0;
+            
+            const timer = setInterval(() => {
+                current += step;
+                if (current >= target) {
+                    element.textContent = target;
+                    clearInterval(timer);
+                } else {
+                    element.textContent = Math.floor(current);
+                }
+            }, 16);
+        }
+
+        // Initialize counters
+        function initCounters() {
+            const counters = document.querySelectorAll('.stat-number');
+            counters.forEach(counter => {
+                counter.textContent = '0';
+            });
+        }
+
+        // Testimonial slider
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.testimonial-card');
+        const track = document.getElementById('testimonialTrack');
+
+        function initTestimonialSlider() {
+            updateSlider();
+            
+            setInterval(() => {
+                nextTestimonial();
+            }, 5000);
+        }
+
+        function nextTestimonial() {
+            currentSlide = (currentSlide + 1) % slides.length;
+            updateSlider();
+        }
+
+        function prevTestimonial() {
+            currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+            updateSlider();
+        }
+
+        function updateSlider() {
+            track.style.transform = `translateX(-${currentSlide * 100}%)`;
+        }
+
+        // Navbar scroll effect
+        function setupNavbar() {
+            const navbar = document.getElementById('navbar');
+            
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            });
+        }
+
+        // Setup scroll events
+        function setupScrollEvents() {
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    const targetId = this.getAttribute('href');
+                    if (targetId === '#') return;
+                    
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        e.preventDefault();
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 80,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+        }
+
+        // Setup modal
+        function setupModal() {
+            const modal = document.getElementById('orderModal');
+            const closeModalBtn = document.getElementById('closeModal');
+            
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeOrderModal();
+                }
+            });
+            
+            closeModalBtn.addEventListener('click', closeOrderModal);
+            
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && modal.classList.contains('active')) {
+                    closeOrderModal();
+                }
+            });
+        }
+
+        // Setup payment options
+        function setupPaymentOptions() {
+            const paymentOptions = document.querySelectorAll('.payment-option');
+            
+            paymentOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Remove selected class from all options
+                    paymentOptions.forEach(opt => opt.classList.remove('selected'));
+                    
+                    // Add selected class to clicked option
+                    this.classList.add('selected');
+                    
+                    // Get selected method
+                    selectedPaymentMethod = this.dataset.method;
+                    
+                    // Hide all payment details
+                    document.querySelectorAll('.payment-details').forEach(detail => {
+                        detail.classList.remove('active');
+                    });
+                    
+                    // Show selected payment details
+                    const detailsId = `${selectedPaymentMethod}Details`;
+                    const detailsElement = document.getElementById(detailsId);
+                    if (detailsElement) {
+                        detailsElement.classList.add('active');
+                    }
+                });
+            });
+        }
+
+        // Setup school form
+        function setupSchoolForm() {
+            const form = document.getElementById('schoolSetupForm');
+            
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                if (validateSchoolForm()) {
+                    submitSchoolData();
+                }
+            });
+        }
+
+        // Package selection
+        function selectPackage(packageId, title, description, price, type) {
+            selectedPackage = {
+                id: packageId,
+                title: title,
+                description: description,
+                price: price,
+                type: type
+            };
+            
+            // Update modal display
+            document.getElementById('selectedPackageTitle').textContent = title;
+            document.getElementById('selectedPackageDescription').textContent = description;
+            document.getElementById('packagePriceDisplay').textContent = price;
+            document.getElementById('modalTitle').textContent = `Order ${title}`;
+            document.getElementById('modalSubtitle').textContent = 'Select payment method to continue';
+            
+            // Reset form steps
+            currentStep = 1;
+            updateFormSteps();
+            
+            // Show payment section
+            showSection('paymentSection');
+            
+            // Open modal
+            openOrderModal();
+        }
+
+        // Form navigation
+        function updateFormSteps() {
+            const steps = document.querySelectorAll('.form-step');
+            
+            steps.forEach(step => {
+                const stepNumber = parseInt(step.dataset.step);
+                
+                step.classList.remove('active', 'completed');
+                
+                if (stepNumber === currentStep) {
+                    step.classList.add('active');
+                } else if (stepNumber < currentStep) {
+                    step.classList.add('completed');
+                }
+            });
+        }
+
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.form-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById('loadingSection').classList.remove('active');
+            document.getElementById('successSection').classList.remove('active');
+            document.getElementById('downloadSection').classList.remove('active');
+            
+            // Show selected section
+            if (sectionId) {
+                document.getElementById(sectionId).classList.add('active');
+            }
+        }
+
+        function nextStep() {
+            currentStep++;
+            updateFormSteps();
+            
+            if (currentStep === 2) {
+                showSection('schoolSetupSection');
+            } else if (currentStep === 3) {
+                showSection('loadingSection');
+                startSystemBuild();
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateFormSteps();
+                
+                if (currentStep === 1) {
+                    showSection('paymentSection');
+                }
+            }
+        }
+
+        // Payment functions
+        function initiatePayment() {
+            if (!selectedPaymentMethod) {
+                showError('Please select a payment method');
+                return;
+            }
+            
+            const mpesaPhone = document.getElementById('mpesaPhone').value;
+            
+            if (!validateMpesaPhone(mpesaPhone)) {
+                showError('mpesaPhoneError', 'Please enter a valid M-Pesa phone number');
+                return;
+            }
+            
+            showLoading('Initiating M-Pesa payment...');
+            
+            // Call backend to initiate M-Pesa payment
+            fetch(`${BACKEND_API}/api/payments/mpesa/initiate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    package: selectedPackage,
+                    phoneNumber: mpesaPhone,
+                    amount: selectedPackage.price
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    orderId = data.orderId;
+                    showSuccess('Payment initiated! Check your phone for STK Push prompt.');
+                    pollPaymentStatus();
+                } else {
+                    showError('Failed to initiate payment. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showError('Network error. Please check your connection.');
+            });
+        }
+
+        function processCardPayment() {
+            const cardNumber = document.getElementById('cardNumber').value;
+            const cardExpiry = document.getElementById('cardExpiry').value;
+            const cardCVC = document.getElementById('cardCVC').value;
+            
+            if (!validateCardDetails(cardNumber, cardExpiry, cardCVC)) {
+                return;
+            }
+            
+            showLoading('Processing card payment...');
+            
+            fetch(`${BACKEND_API}/api/payments/card/process`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    package: selectedPackage,
+                    cardNumber: cardNumber,
+                    expiry: cardExpiry,
+                    cvc: cardCVC,
+                    amount: selectedPackage.price
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    orderId = data.orderId;
+                    showSuccess('Payment successful!');
+                    nextStep();
+                } else {
+                    showError('Payment failed. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showError('Network error. Please check your connection.');
+            });
+        }
+
+        function verifyBankPayment() {
+            const paymentProof = document.getElementById('paymentProof').files[0];
+            
+            if (!paymentProof) {
+                showError('paymentProofError', 'Please upload payment proof');
+                return;
+            }
+            
+            showLoading('Verifying bank payment...');
+            
+            const formData = new FormData();
+            formData.append('package', JSON.stringify(selectedPackage));
+            formData.append('paymentProof', paymentProof);
+            formData.append('amount', selectedPackage.price);
+            
+            fetch(`${BACKEND_API}/api/payments/bank/verify`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    orderId = data.orderId;
+                    showSuccess('Payment verification submitted. We will notify you once verified.');
+                    pollPaymentStatus();
+                } else {
+                    showError('Verification failed. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showError('Network error. Please check your connection.');
+            });
+        }
+
+        // Poll payment status
+        function pollPaymentStatus() {
+            if (!orderId) return;
+            
+            const pollInterval = setInterval(() => {
+                fetch(`${BACKEND_API}/api/payments/status/${orderId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'completed') {
+                        clearInterval(pollInterval);
+                        showSuccess('Payment confirmed!');
+                        nextStep();
+                    } else if (data.status === 'failed') {
+                        clearInterval(pollInterval);
+                        showError('Payment failed. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error polling status:', error);
+                });
+            }, 3000); // Poll every 3 seconds
+        }
+
+        // School form validation
+        function validateSchoolForm() {
+            let isValid = true;
+            
+            const schoolName = document.getElementById('schoolName').value;
+            const adminEmail = document.getElementById('adminEmail').value;
+            const adminPassword = document.getElementById('adminPassword').value;
+            
+            // Reset errors
+            clearErrors();
+            
+            // Validate school name
+            if (!schoolName.trim()) {
+                showError('schoolNameError', 'School name is required');
+                document.getElementById('schoolName').parentElement.classList.add('error');
+                isValid = false;
+            }
+            
+            // Validate email
+            if (!validateEmail(adminEmail)) {
+                showError('adminEmailError', 'Please enter a valid email address');
+                document.getElementById('adminEmail').parentElement.classList.add('error');
+                isValid = false;
+            }
+            
+            // Validate password
+            if (adminPassword.length < 6) {
+                showError('adminPasswordError', 'Password must be at least 6 characters');
+                document.getElementById('adminPassword').parentElement.classList.add('error');
+                isValid = false;
+            }
+            
+            return isValid;
+        }
+
+        // Submit school data to backend
+        function submitSchoolData() {
+            const formData = new FormData();
+            const schoolLogo = document.getElementById('schoolLogo').files[0];
+            
+            formData.append('orderId', orderId);
+            formData.append('schoolName', document.getElementById('schoolName').value);
+            formData.append('schoolMotto', document.getElementById('schoolMotto').value);
+            formData.append('schoolAddress', document.getElementById('schoolAddress').value);
+            formData.append('adminEmail', document.getElementById('adminEmail').value);
+            formData.append('adminPassword', document.getElementById('adminPassword').value);
+            
+            if (schoolLogo) {
+                formData.append('schoolLogo', schoolLogo);
+            }
+            
+            showLoading('Saving school information...');
+            
+            fetch(`${BACKEND_API}/api/schools/setup`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    buildId = data.buildId;
+                    nextStep(); // Move to building step
+                } else {
+                    showError('Failed to save school information. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showError('Network error. Please check your connection.');
+            });
+        }
+
+        // Start system build process
+        function startSystemBuild() {
+            if (!buildId) return;
+            
+            const progressText = document.getElementById('progressText');
+            
+            // Update progress text
+            const progressSteps = [
+                'Initializing build process...',
+                'Configuring database...',
+                'Customizing templates...',
+                'Setting up admin panel...',
+                'Generating configuration files...',
+                'Finalizing build...'
+            ];
+            
+            let currentStep = 0;
+            
+            const progressInterval = setInterval(() => {
+                if (currentStep < progressSteps.length) {
+                    progressText.textContent = progressSteps[currentStep];
+                    currentStep++;
+                }
+            }, 2000);
+            
+            // Poll build status
+            const pollInterval = setInterval(() => {
+                fetch(`${BACKEND_API}/api/builds/status/${buildId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'completed') {
+                        clearInterval(pollInterval);
+                        clearInterval(progressInterval);
+                        
+                        // Show success
+                        showSection('successSection');
+                        
+                        // After 2 seconds, show download section
+                        setTimeout(() => {
+                            showSection('downloadSection');
+                            setupDownloadLink(data.downloadUrl);
+                        }, 2000);
+                        
+                    } else if (data.status === 'failed') {
+                        clearInterval(pollInterval);
+                        clearInterval(progressInterval);
+                        showError('Build failed. Please contact support.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error polling build status:', error);
+                });
+            }, 5000);
+        }
+
+        // Setup download link
+        function setupDownloadLink(downloadUrl) {
+            const downloadLink = document.getElementById('downloadLink');
+            downloadLink.href = downloadUrl;
+            
+            // Add click tracking
+            downloadLink.addEventListener('click', function() {
+                // Track download in backend
+                fetch(`${BACKEND_API}/api/builds/download/${buildId}`, {
+                    method: 'POST'
+                });
+            });
+        }
+
+        // Validation helpers
+        function validateMpesaPhone(phone) {
+            const phoneRegex = /^(07\d{8}|2547\d{8}|\+2547\d{8})$/;
+            return phoneRegex.test(phone.replace(/\s/g, ''));
+        }
+
+        function validateCardDetails(cardNumber, expiry, cvc) {
+            let isValid = true;
+            
+            // Reset errors
+            clearErrors();
+            
+            // Validate card number
+            const cardRegex = /^[0-9]{16}$/;
+            if (!cardRegex.test(cardNumber.replace(/\s/g, ''))) {
+                showError('cardNumberError', 'Please enter a valid 16-digit card number');
+                document.getElementById('cardNumber').parentElement.classList.add('error');
+                isValid = false;
+            }
+            
+            // Validate expiry date
+            const expiryRegex = /^(0[1-9]|1[0-2])\/([0-9]{2})$/;
+            if (!expiryRegex.test(expiry)) {
+                showError('cardExpiryError', 'Please enter a valid expiry date (MM/YY)');
+                document.getElementById('cardExpiry').parentElement.classList.add('error');
+                isValid = false;
+            }
+            
+            // Validate CVC
+            const cvcRegex = /^[0-9]{3,4}$/;
+            if (!cvcRegex.test(cvc)) {
+                showError('cardCVCError', 'Please enter a valid CVC (3 or 4 digits)');
+                document.getElementById('cardCVC').parentElement.classList.add('error');
+                isValid = false;
+            }
+            
+            return isValid;
+        }
+
+        function validateEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // UI helpers
+        function showError(elementId, message) {
+            if (typeof elementId === 'string') {
+                const errorElement = document.getElementById(elementId);
+                if (errorElement) {
+                    errorElement.textContent = message;
+                    errorElement.classList.add('active');
+                }
+            } else {
+                alert(message);
+            }
+        }
+
+        function clearErrors() {
+            document.querySelectorAll('.error-message').forEach(error => {
+                error.classList.remove('active');
+                error.textContent = '';
+            });
+            
+            document.querySelectorAll('.form-group').forEach(group => {
+                group.classList.remove('error');
+            });
+        }
+
+        function showLoading(message) {
+            const loadingSection = document.getElementById('loadingSection');
+            const progressText = document.getElementById('progressText');
+            
+            progressText.textContent = message;
+            showSection('loadingSection');
+        }
+
+        function showSuccess(message) {
+            alert(message); // In production, use a better notification system
+        }
+
+        function openOrderModal() {
+            const modal = document.getElementById('orderModal');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeOrderModal() {
+            const modal = document.getElementById('orderModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+            
+            // Reset form
+            currentStep = 1;
+            selectedPackage = null;
+            selectedPaymentMethod = null;
+            orderId = null;
+            buildId = null;
+            
+            updateFormSteps();
+            showSection('paymentSection');
+            clearErrors();
+        }
+
+        // Other functions
+        function redirectToLogin() {
+            alert('Redirecting to login page...\n\nIn the full implementation, this would navigate to the login system.');
+        }
+
+        function scrollToPricing() {
+            const pricingSection = document.getElementById('pricing');
+            window.scrollTo({
+                top: pricingSection.offsetTop - 80,
+                behavior: 'smooth'
+            });
+        }
+
+        // Add confetti effect
+        function createConfetti() {
+            const colors = ['#4CAF50', '#2E7D32', '#FFD700', '#FFC107', '#FFFFFF'];
+            const confettiCount = 100;
+            
+            for (let i = 0; i < confettiCount; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.position = 'fixed';
+                confetti.style.width = '10px';
+                confetti.style.height = '10px';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                confetti.style.left = `${Math.random() * 100}vw`;
+                confetti.style.top = '-20px';
+                confetti.style.zIndex = '9999';
+                confetti.style.opacity = '0.8';
+                
+                document.body.appendChild(confetti);
+                
+                const animation = confetti.animate([
+                    { transform: 'translateY(0) rotate(0deg)', opacity: 1 },
+                    { transform: `translateY(${window.innerHeight}px) rotate(${Math.random() * 720}deg)`, opacity: 0 }
+                ], {
+                    duration: Math.random() * 2000 + 1000,
+                    easing: 'cubic-bezier(0.215, 0.61, 0.355, 1)'
+                });
+                
+                animation.onfinish = () => confetti.remove();
+            }
+        }
+
+        // Add interactive animations
+        document.querySelectorAll('.feature-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-15px) scale(1.02)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // Add floating animation to dashboard items
+        document.querySelectorAll('.dashboard-item').forEach((item, index) => {
+            item.style.animationDelay = `${index * 0.1}s`;
+            
+            item.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.1)';
+                this.style.backgroundColor = '#4CAF50';
+            });
+            
+            item.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1)';
+                this.style.backgroundColor = '#F8F9FA';
+            });
+        });
+
+        // Add typing effect to hero title
+        const heroTitle = document.querySelector('.hero-title');
+        const originalText = heroTitle.textContent;
+        heroTitle.textContent = '';
+        
+        let charIndex = 0;
+        function typeWriter() {
+            if (charIndex < originalText.length) {
+                heroTitle.textContent += originalText.charAt(charIndex);
+                charIndex++;
+                setTimeout(typeWriter, 50);
+            }
+        }
+        
+        setTimeout(typeWriter, 500);
+
+        // Add confetti on CTA button click
+        document.querySelector('.cta-button').addEventListener('click', function(e) {
+            createConfetti();
+        });
+
+        document.querySelectorAll('.pricing-button').forEach(button => {
+            button.addEventListener('click', function(e) {
+                createConfetti();
+            });
+        });
+    </script>
+</body>
+</html>
