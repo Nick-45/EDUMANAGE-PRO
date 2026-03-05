@@ -1,0 +1,25 @@
+[build]
+  command = "npm run build"
+  functions = "netlify/functions"
+  publish = "build"
+
+[build.environment]
+  REACT_APP_API_URL = "/.netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["nodemailer", "stripe", "bcryptjs", "jsonwebtoken", "firebase-admin"]
+
+[functions."auth"]
+  included_files = ["node_modules/nodemailer/**", "node_modules/bcryptjs/**", "node_modules/jsonwebtoken/**"]
+
+[functions."email"]
+  included_files = ["node_modules/nodemailer/**"]
+
+[functions."payments"]
+  included_files = ["node_modules/stripe/**"]
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
