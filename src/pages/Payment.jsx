@@ -99,6 +99,7 @@ const Payment = () => {
             clearInterval(interval);
             toast.error('Payment failed. Please try again.');
             setStep(1);
+            setLoading(false);
           }
         } catch (error) {
           console.error('Error polling payment status:', error);
@@ -393,128 +394,127 @@ const Payment = () => {
 
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Cardholder Name
-                            </label>
-                            <input
-                              type="text"
-                              name="cardName"
-                              value={formData.cardName}
-                              onChange={handleInputChange}
-                              placeholder="John Doe"
-                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent"
-                            />
-                          </div>
-
-                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                            <p className="text-sm text-blue-800">
-                              🔒 Your card details are securely encrypted
-                            </p>
-                          </div>
+                            Cardholder Name
+                          </label>
+                          <input
+                            type="text"
+                            name="cardName"
+                            value={formData.cardName}
+                            onChange={handleInputChange}
+                            placeholder="John Doe"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent"
+                          />
                         </div>
-                      )}
 
-                      {/* Bank Transfer Form */}
-                      {paymentMethod === 'bank' && (
-                        <div className="space-y-4">
-                          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
-                            <h4 className="font-medium mb-2">Bank Account Details</h4>
-                            <p className="text-sm mb-1"><span className="font-medium">Bank:</span> Equity Bank</p>
-                            <p className="text-sm mb-1"><span className="font-medium">Account Name:</span> EduManagerPro Ltd</p>
-                            <p className="text-sm mb-1"><span className="font-medium">Account Number:</span> 1234567890</p>
-                            <p className="text-sm"><span className="font-medium">Branch:</span> Nairobi CBD</p>
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Account Holder Name
-                            </label>
-                            <input
-                              type="text"
-                              name="accountName"
-                              value={formData.accountName}
-                              onChange={handleInputChange}
-                              placeholder="John Doe"
-                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Transaction Reference
-                            </label>
-                            <input
-                              type="text"
-                              name="transactionRef"
-                              value={formData.transactionRef}
-                              onChange={handleInputChange}
-                              placeholder="e.g., MPESA transaction ID"
-                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent"
-                            />
-                          </div>
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                          <p className="text-sm text-blue-800">
+                            🔒 Your card details are securely encrypted
+                          </p>
                         </div>
-                      )}
-
-                      <div className="mt-6">
-                        <button
-                          type="submit"
-                          disabled={loading}
-                          className="w-full py-4 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg font-semibold hover:shadow-lg disabled:opacity-50 flex items-center justify-center"
-                        >
-                          {loading ? (
-                            <>
-                              <FaSpinner className="animate-spin mr-2" />
-                              Processing...
-                            </>
-                          ) : (
-                            <>
-                              <FaLock className="mr-2" />
-                              Pay KSh {selectedPlan.price.toLocaleString()}
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    </form>
-                  </>
-                ) : (
-                  // Step 2: Processing/Confirmation
-                  <div className="text-center py-12">
-                    {loading ? (
-                      <div className="space-y-4">
-                        <div className="w-20 h-20 border-4 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-                        <h3 className="text-xl font-semibold">Processing Payment</h3>
-                        <p className="text-gray-600">Please wait while we confirm your payment...</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                          <FaCheckCircle className="text-4xl text-green-600" />
-                        </div>
-                        <h3 className="text-xl font-semibold">Payment Successful!</h3>
-                        <p className="text-gray-600">Redirecting you to setup your school...</p>
                       </div>
                     )}
-                  </div>
-                )}
-              </div>
+
+                    {/* Bank Transfer Form */}
+                    {paymentMethod === 'bank' && (
+                      <div className="space-y-4">
+                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+                          <h4 className="font-medium mb-2">Bank Account Details</h4>
+                          <p className="text-sm mb-1"><span className="font-medium">Bank:</span> Equity Bank</p>
+                          <p className="text-sm mb-1"><span className="font-medium">Account Name:</span> EduManagerPro Ltd</p>
+                          <p className="text-sm mb-1"><span className="font-medium">Account Number:</span> 1234567890</p>
+                          <p className="text-sm"><span className="font-medium">Branch:</span> Nairobi CBD</p>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Account Holder Name
+                          </label>
+                          <input
+                            type="text"
+                            name="accountName"
+                            value={formData.accountName}
+                            onChange={handleInputChange}
+                            placeholder="John Doe"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Transaction Reference
+                          </label>
+                          <input
+                            type="text"
+                            name="transactionRef"
+                            value={formData.transactionRef}
+                            onChange={handleInputChange}
+                            placeholder="e.g., MPESA transaction ID"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="mt-6">
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full py-4 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg font-semibold hover:shadow-lg disabled:opacity-50 flex items-center justify-center"
+                      >
+                        {loading ? (
+                          <>
+                            <FaSpinner className="animate-spin mr-2" />
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <FaLock className="mr-2" />
+                            Pay KSh {selectedPlan.price.toLocaleString()}
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                </>
+              ) : (
+                // Step 2: Processing/Confirmation
+                <div className="text-center py-12">
+                  {loading ? (
+                    <div className="space-y-4">
+                      <div className="w-20 h-20 border-4 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                      <h3 className="text-xl font-semibold">Processing Payment</h3>
+                      <p className="text-gray-600">Please wait while we confirm your payment...</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                        <FaCheckCircle className="text-4xl text-green-600" />
+                      </div>
+                      <h3 className="text-xl font-semibold">Payment Successful!</h3>
+                      <p className="text-gray-600">Redirecting you to setup your school...</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
+        </div>
 
-          {/* Security Footer */}
-          <div className="bg-gray-50 px-8 py-4 border-t border-gray-200">
-            <div className="flex items-center justify-center space-x-6 text-sm text-gray-600">
-              <span className="flex items-center">
-                <FaLock className="mr-2 text-green-600" />
-                SSL Encrypted
-              </span>
-              <span className="flex items-center">
-                <FaCheckCircle className="mr-2 text-green-600" />
-                PCI Compliant
-              </span>
-              <span className="flex items-center">
-                <FaMoneyBillWave className="mr-2 text-green-600" />
-                Money-back Guarantee
-              </span>
-            </div>
+        {/* Security Footer */}
+        <div className="bg-gray-50 px-8 py-4 border-t border-gray-200">
+          <div className="flex items-center justify-center space-x-6 text-sm text-gray-600">
+            <span className="flex items-center">
+              <FaLock className="mr-2 text-green-600" />
+              SSL Encrypted
+            </span>
+            <span className="flex items-center">
+              <FaCheckCircle className="mr-2 text-green-600" />
+              PCI Compliant
+            </span>
+            <span className="flex items-center">
+              <FaMoneyBillWave className="mr-2 text-green-600" />
+              Money-back Guarantee
+            </span>
           </div>
         </div>
       </div>
