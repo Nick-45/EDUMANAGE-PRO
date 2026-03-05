@@ -1,0 +1,119 @@
+{
+  "common": {
+    "login": "Ingia",
+    "signup": "Jisajili",
+    "logout": "Toka",
+    "dashboard": "Dashibodi",
+    "settings": "Mipangilio",
+    "save": "Hifadhi",
+    "cancel": "Ghairi",
+    "delete": "Futa",
+    "edit": "Hariri",
+    "view": "Angalia",
+    "loading": "Inapakia...",
+    "error": "Hitilafu imetokea",
+    "success": "Imefaulu!",
+    "confirm": "Thibitisha",
+    "back": "Nyuma",
+    "next": "Mbele",
+    "submit": "Wasilisha"
+  },
+  "home": {
+    "hero": {
+      "badge": "Mfumo wa Usimamizi wa Shule",
+      "title": "Badilisha Shule Yako kwa",
+      "titleHighlight": "Teknolojia ya Wingu",
+      "subtitle": "Suluhisho kamili la usimamizi wa shule lenye utengano wa shule nyingi, chapa maalum, na programu za simu.",
+      "cta": "Anza Jaribio Bure",
+      "demo": "Onyesho Moja kwa Moja"
+    },
+    "features": {
+      "title": "Kila Kitu Unachohitaji",
+      "titleHighlight": "Kufanikiwa",
+      "subtitle": "Jukwaa kamili la usimamizi wa shule lenye utengano wa shule nyingi na chapa maalum",
+      "multiSchool": {
+        "title": "Utengano wa Shule Nyingi",
+        "description": "Kila shule inapata mfumo wake pekee wenye kikoa kidogo maalum na utengano kamili wa data."
+      },
+      "branding": {
+        "title": "Chapa Maalum",
+        "description": "Pakia nembo ya shule yako, weka rangi maalum, na uunde hali ya kipekee kwa jamii yako."
+      },
+      "mobile": {
+        "title": "Programu ya Simu yenye Chapa Yako",
+        "description": "Pakua programu ya simu yenye chapa ya shule yako inayoelekeza kwenye kikoa chako kidogo."
+      }
+    },
+    "pricing": {
+      "title": "Bei Rahisi,",
+      "titleHighlight": "wazi",
+      "subtitle": "Chagua mpango unaofaa shule yako. Mipango yote inajumuisha kikoa kidogo maalum, chapa, na programu ya simu.",
+      "starter": {
+        "name": "Mwanzo",
+        "price": "KSh 2,500",
+        "period": "/mwezi",
+        "features": [
+          "Hadi wanafunzi 200",
+          "Kikoa kidogo maalum",
+          "Chapa ya shule",
+          "Programu ya simu",
+          "Msaada wa barua pepe",
+          "Ripoti za msingi"
+        ]
+      },
+      "professional": {
+        "name": "Kitaalamu",
+        "price": "KSh 5,000",
+        "period": "/mwezi",
+        "features": [
+          "Hadi wanafunzi 500",
+          "Kikoa kidogo maalum",
+          "Chapa ya hali ya juu",
+          "Programu ya simu",
+          "Msaada wa kipaumbele",
+          "Ripoti za kina",
+          "Ufikiaji wa API"
+        ]
+      },
+      "enterprise": {
+        "name": "Biashara",
+        "price": "KSh 10,000",
+        "period": "/mwezi",
+        "features": [
+          "Wanafunzi wasio na kikomo",
+          "Kikoa maalum",
+          "Chapa kamili",
+          "Programu maalum ya simu",
+          "Msaada 24/7",
+          "Ripoti maalum",
+          "Ufikiaji wa API",
+          "Maendeleo maalum"
+        ]
+      }
+    }
+  },
+  "auth": {
+    "welcomeBack": "Karibu Tena",
+    "createAccount": "Fungua Akaunti",
+    "loginSubtitle": "Ingia kwenye dashibodi ya shule yako",
+    "signupSubtitle": "Anza jaribio lako la bure la siku 14",
+    "email": "Barua Pepe",
+    "password": "Nywila",
+    "confirmPassword": "Thibitisha Nywila",
+    "forgotPassword": "Umesahau nywila?",
+    "noAccount": "Huna akaunti?",
+    "hasAccount": "Tayari una akaunti?",
+    "schoolName": "Jina la Shule",
+    "adminName": "Jina la Msimamizi",
+    "phone": "Nambari ya Simu",
+    "schoolSize": "Ukubwa wa Shule",
+    "terms": "Nakubali Sheria na Masharti na Sera ya Faragha",
+    "errors": {
+      "required": "Sehemu hii inahitajika",
+      "email": "Anwani ya barua pepe si sahihi",
+      "password": "Nywila lazima iwe na angalau herufi 6",
+      "passwordMatch": "Nywila hazilingani",
+      "phone": "Nambari ya simu sahihi inahitajika"
+    }
+  }
+}
