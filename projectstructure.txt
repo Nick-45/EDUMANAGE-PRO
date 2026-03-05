@@ -1,0 +1,61 @@
+edumanagerpro/
+├── public/
+│   ├── index.html
+│   └── manifest.json
+├── src/
+│   ├── components/
+│   │   ├── layout/
+│   │   │   ├── Navbar.jsx
+│   │   │   ├── Footer.jsx
+│   │   │   └── Layout.jsx
+│   │   ├── auth/
+│   │   │   ├── AuthModal.jsx
+│   │   │   ├── LoginForm.jsx
+│   │   │   └── SignupForm.jsx
+│   │   ├── home/
+│   │   │   ├── Hero.jsx
+│   │   │   ├── Features.jsx
+│   │   │   ├── Pricing.jsx
+│   │   │   ├── Stats.jsx
+│   │   │   ├── Testimonials.jsx
+│   │   │   └── CTA.jsx
+│   │   └── ui/
+│   │       ├── Button.jsx
+│   │       ├── Card.jsx
+│   │       ├── Modal.jsx
+│   │       └── Spinner.jsx
+│   ├── pages/
+│   │   ├── Home.jsx
+│   │   ├── Dashboard.jsx
+│   │   ├── Setup.jsx
+│   │   ├── Payment.jsx
+│   │   └── AppDownload.jsx
+│   ├── hooks/
+│   │   ├── useAuth.js
+│   │   ├── useSubscription.js
+│   │   └── useSchool.js
+│   ├── services/
+│   │   ├── api.js
+│   │   ├── auth.js
+│   │   ├── payment.js
+│   │   └── email.js
+│   ├── utils/
+│   │   ├── validators.js
+│   │   └── formatters.js
+│   ├── context/
+│   │   ├── AuthContext.jsx
+│   │   └── SchoolContext.jsx
+│   ├── App.jsx
+│   ├── index.js
+│   └── index.css
+├── netlify/
+│   └── functions/
+│       ├── auth.js
+│       ├── schools.js
+│       ├── payments.js
+│       ├── email.js
+│       └── apps.js
+├── .env
+├── netlify.toml
+├── package.json
+└── README.md
