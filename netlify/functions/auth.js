@@ -79,7 +79,7 @@ exports.handler = async (event, context) => {
       const token = jwt.sign(
         { userId: userRef.id, schoolId: schoolRef.id, email },
         process.env.JWT_SECRET,
-        { expiresIn: '7d' }
+        { expiresIn: '15m' }
       );
 
       // Send welcome email
