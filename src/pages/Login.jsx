@@ -167,12 +167,7 @@ const Login = () => {
           </div>
         </form>
 
-        {/* Demo Credentials */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <p className="text-xs text-gray-500 mb-2">Demo Credentials:</p>
-          <p className="text-xs text-gray-600">Email: admin@demo.com</p>
-          <p className="text-xs text-gray-600">Password: demo123</p>
-        </div>
+      
       </motion.div>
     </div>
   );
