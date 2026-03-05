@@ -1,0 +1,12 @@
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://edumanagerpro.netlifyapp/sitemap.xml
+
+# Disallow admin paths
+Disallow: /dashboard
+Disallow: /setup
+Disallow: /payment
+Disallow: /api/
