@@ -1,0 +1,11 @@
+# Netlify redirects
+/*    /index.html    200
+
+# API routes
+/api/*    /.netlify/functions/:splat    200
+
+# Subdomain redirects (for multi-tenant)
+*.edumanagerpro.com/*    /.netlify/functions/school-router    200
+
+# Force HTTPS
+*   https://:splat   301!
