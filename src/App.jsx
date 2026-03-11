@@ -8,7 +8,7 @@ import Payment from './pages/Payment';
 import AppDownload from './pages/AppDownload';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
-import Settings from './pages/settings';
+import Settings from './pages/Settings';
 
 const PrivateRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
