@@ -57,6 +57,7 @@ function App() {
           </PrivateRoute>
         }
       />
+      <Route
        path="/settings"
         element={
           <PrivateRoute>
