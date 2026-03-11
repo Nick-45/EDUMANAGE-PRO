@@ -44,6 +44,7 @@ const planFeatures = {
 };
 
 const Setup = () => {
+
   const { user } = useAuth();
   const { school, updateSchool, uploadLogo } = useSchool();
   const navigate = useNavigate();
@@ -70,12 +71,8 @@ const Setup = () => {
 
   const [logoPreview, setLogoPreview] = useState(null);
 
-  /*
-  LOAD SCHOOL DATA FROM CONTEXT
-  (data created during signup)
-  */
-
   useEffect(() => {
+
     if (!school) return;
 
     setFormData(prev => ({
@@ -99,13 +96,16 @@ const Setup = () => {
   }, [school]);
 
   const handleInputChange = (e) => {
+
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
+
   };
 
   const handleLogoChange = (e) => {
+
     const file = e.target.files[0];
 
     if (!file) return;
@@ -116,25 +116,51 @@ const Setup = () => {
     });
 
     setLogoPreview(URL.createObjectURL(file));
+
+  };
+
+  const convertToBase64 = (file) => {
+
+    return new Promise((resolve, reject) => {
+
+      const reader = new FileReader();
+
+      reader.readAsDataURL(file);
+
+      reader.onload = () => resolve(reader.result);
+
+      reader.onerror = error => reject(error);
+
+    });
+
   };
 
   const generateClasses = (prefix, numbers) => {
+
     return numbers.split(',').map(num => ({
+
       id: num.trim(),
       name: `${prefix} ${num.trim()}`,
       sections: ["A", "B"]
+
     }));
+
   };
 
   const generateSubjects = (subjectString) => {
+
     return subjectString.split(',').map(sub => ({
+
       id: sub.trim().toLowerCase().replace(/\s/g, ''),
       name: sub.trim(),
       category: 'core'
+
     }));
+
   };
 
   const handleSaveSchool = async () => {
+
     setLoading(true);
 
     try {
@@ -149,6 +175,7 @@ const Setup = () => {
       const features = planFeatures[formData.plan];
 
       await updateSchool({
+
         identity: {
           name: formData.name,
           motto: formData.motto,
@@ -180,10 +207,17 @@ const Setup = () => {
       });
 
       if (formData.logo) {
-        await uploadLogo(formData.logo);
+
+        const base64Image = await convertToBase64(formData.logo);
+
+        await uploadLogo({
+          image: base64Image
+        });
+
       }
 
       toast.success("School configuration saved!");
+
       setStep(3);
 
     } catch (error) {
@@ -195,20 +229,24 @@ const Setup = () => {
       setLoading(false);
 
     }
+
   };
 
   const handleComplete = () => {
+
     navigate('/dashboard');
+
   };
 
   return (
+
     <>
       <Navbar />
 
       <div className="min-h-screen bg-gray-50 pt-20">
+
         <div className="container mx-auto px-4 py-8 max-w-4xl">
 
-          {/* Steps */}
           <div className="mb-8">
 
             <div className="flex items-center justify-between">
@@ -246,8 +284,6 @@ const Setup = () => {
 
           </div>
 
-          {/* STEP 1 */}
-
           {step === 1 && (
 
             <motion.div
@@ -262,53 +298,17 @@ const Setup = () => {
 
               <div className="grid md:grid-cols-2 gap-6">
 
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  placeholder="School Name"
-                  className="w-full px-4 py-2 border rounded-lg"
-                />
+                <input type="text" name="name" value={formData.name} onChange={handleInputChange} placeholder="School Name" className="w-full px-4 py-2 border rounded-lg"/>
 
-                <input
-                  type="text"
-                  name="motto"
-                  value={formData.motto}
-                  onChange={handleInputChange}
-                  placeholder="School Motto"
-                  className="w-full px-4 py-2 border rounded-lg"
-                />
+                <input type="text" name="motto" value={formData.motto} onChange={handleInputChange} placeholder="School Motto" className="w-full px-4 py-2 border rounded-lg"/>
 
-                <textarea
-                  name="address"
-                  value={formData.address}
-                  onChange={handleInputChange}
-                  placeholder="Address"
-                  className="col-span-2 w-full px-4 py-2 border rounded-lg"
-                />
+                <textarea name="address" value={formData.address} onChange={handleInputChange} placeholder="Address" className="col-span-2 w-full px-4 py-2 border rounded-lg"/>
 
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  placeholder="Phone"
-                  className="w-full px-4 py-2 border rounded-lg"
-                />
+                <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="Phone" className="w-full px-4 py-2 border rounded-lg"/>
 
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="Email"
-                  className="w-full px-4 py-2 border rounded-lg"
-                />
+                <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="Email" className="w-full px-4 py-2 border rounded-lg"/>
 
               </div>
-
-              {/* LOGO */}
 
               <div className="mt-6">
 
@@ -341,10 +341,11 @@ const Setup = () => {
               <div className="flex justify-end mt-6">
 
                 <button
-                  onClick={() => setStep(2)}
+                  onClick={handleSaveSchool}
+                  disabled={loading}
                   className="px-6 py-3 bg-primary-600 text-white rounded-lg flex items-center"
                 >
-                  Next Step
+                  {loading ? "Saving..." : "Save & Continue"}
                   <FaArrowRight className="ml-2"/>
                 </button>
 
@@ -353,8 +354,6 @@ const Setup = () => {
             </motion.div>
 
           )}
-
-          {/* STEP 3 */}
 
           {step === 3 && (
 
@@ -384,9 +383,13 @@ const Setup = () => {
           )}
 
         </div>
+
       </div>
+
     </>
+
   );
+
 };
 
 export default Setup;
