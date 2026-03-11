@@ -60,20 +60,22 @@ export const SchoolProvider = ({ children }) => {
     }
   };
 
-  const uploadLogo = async (file) => {
-    try {
-      const formData = new FormData();
-      formData.append('logo', file);
-      const updated = await schoolService.uploadLogo(school.id, formData);
-      setSchool(updated);
-      toast.success('Logo uploaded successfully');
-      return updated;
-    } catch (error) {
-      toast.error(error.message || 'Failed to upload logo');
-      throw error;
-    }
-  };
+ const uploadLogo = async ({ image }) => {
+  try {
 
+    const updated = await schoolService.uploadLogo(school.id, {
+      image
+    });
+
+    setSchool(updated);
+    toast.success('Logo uploaded successfully');
+    return updated;
+
+  } catch (error) {
+    toast.error(error.message || 'Failed to upload logo');
+    throw error;
+  }
+};
   const subscribe = async (planId, paymentDetails) => {
     try {
       const result = await schoolService.subscribe(school.id, planId, paymentDetails);
