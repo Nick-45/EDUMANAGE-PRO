@@ -3,8 +3,7 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
-// Your Firebase configuration
-// Replace with your actual Firebase project config
+
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
   authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
@@ -24,4 +23,5 @@ export const db = getFirestore(app);
 export const storage = getStorage(app);
 
 // Export the app instance as well
+export { app };
 export default app;
