@@ -64,33 +64,22 @@ export const SchoolProvider = ({ children }) => {
   // UPLOAD LOGO (Base64)
   // -----------------------
   const uploadLogo = async (file) => {
-    if (!file) {
-      toast.error('No file provided');
-      return;
-    }
+  if (!file) throw new Error("No file provided");
 
-    try {
-      // Convert file to Base64
-      const base64Image = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = (error) => reject(error);
-      });
+  // Convert File to Base64
+  const base64Image = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file); // File object required
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (error) => reject(error);
+  });
 
-      // Send to API
-      const updated = await schoolService.uploadLogo(school.id, {
-        image: base64Image
-      });
-
-      setSchool(updated);
-      toast.success('Logo uploaded successfully');
-      return updated;
-    } catch (error) {
-      toast.error(error.message || 'Failed to upload logo');
-      throw error;
-    }
-  };
+  // Send base64 image to backend
+  const updated = await schoolService.uploadLogo(school.id, { image: base64Image });
+  setSchool(updated);
+  toast.success('Logo uploaded successfully');
+  return updated;
+};
 
   const subscribe = async (planId, paymentDetails) => {
     try {
