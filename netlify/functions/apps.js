@@ -15,17 +15,13 @@ if (!admin.apps.length) {
 }
 
 const db = admin.firestore();
-const bucket = admin.storage().bucket();
 
 // Generate Android app
 const generateAndroidApp = async (school) => {
   const appId = `com.edumanagerpro.${school.subdomain}`;
   const appName = school.name.replace(/[^a-zA-Z0-9]/g, '');
 
-  // This would be replaced with actual app generation logic
-  // For now, we'll create a template
   const appTemplate = `
-    // MainActivity.java
     package ${appId};
     
     import android.os.Bundle;
@@ -66,11 +62,10 @@ const generateAndroidApp = async (school) => {
 
 // Generate iOS app
 const generateiOSApp = async (school) => {
+
   const bundleId = `com.edumanagerpro.${school.subdomain}`;
 
-  // This would be replaced with actual app generation logic
   const appTemplate = `
-    // ViewController.swift
     import UIKit
     import WebKit
     
@@ -94,7 +89,8 @@ const generateiOSApp = async (school) => {
   return appTemplate;
 };
 
-exports.handler = async (event, context) => {
+exports.handler = async (event) => {
+
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
@@ -106,7 +102,9 @@ exports.handler = async (event, context) => {
   }
 
   try {
+
     const token = event.headers.authorization?.replace('Bearer ', '');
+
     if (!token) {
       return {
         statusCode: 401,
@@ -116,13 +114,14 @@ exports.handler = async (event, context) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
     const path = event.path.replace('/.netlify/functions/apps/', '');
 
     // Generate app
     if (path === 'generate' && event.httpMethod === 'POST') {
+
       const { schoolId, platform } = JSON.parse(event.body);
 
-      // Verify access
       if (decoded.schoolId !== schoolId) {
         return {
           statusCode: 403,
@@ -131,8 +130,8 @@ exports.handler = async (event, context) => {
         };
       }
 
-      // Get school info
       const schoolDoc = await db.collection('schools').doc(schoolId).get();
+
       if (!schoolDoc.exists) {
         return {
           statusCode: 404,
@@ -143,25 +142,29 @@ exports.handler = async (event, context) => {
 
       const school = schoolDoc.data();
 
-      // Generate app based on platform
       let appContent;
       let fileName;
 
       if (platform === 'android') {
+
         appContent = await generateAndroidApp(school);
         fileName = `${school.subdomain}-android.zip`;
+
       } else if (platform === 'ios') {
+
         appContent = await generateiOSApp(school);
         fileName = `${school.subdomain}-ios.zip`;
+
       } else {
+
         return {
           statusCode: 400,
           headers,
           body: JSON.stringify({ error: 'Invalid platform' }),
         };
+
       }
 
-      // Create build record
       const buildRef = await db.collection('appBuilds').add({
         schoolId,
         platform,
@@ -178,13 +181,16 @@ exports.handler = async (event, context) => {
           message: 'App generated successfully',
         }),
       };
+
     }
 
     // Download app
     if (path.startsWith('download/') && event.httpMethod === 'GET') {
+
       const buildId = path.split('/')[1];
 
       const buildDoc = await db.collection('appBuilds').doc(buildId).get();
+
       if (!buildDoc.exists) {
         return {
           statusCode: 404,
@@ -195,7 +201,6 @@ exports.handler = async (event, context) => {
 
       const build = buildDoc.data();
 
-      // Verify access
       if (decoded.schoolId !== build.schoolId) {
         return {
           statusCode: 403,
@@ -204,8 +209,6 @@ exports.handler = async (event, context) => {
         };
       }
 
-      // This would stream the actual app file
-      // For now, return a mock response
       return {
         statusCode: 200,
         headers: {
@@ -214,15 +217,17 @@ exports.handler = async (event, context) => {
           'Content-Disposition': `attachment; filename="${build.fileName}"`,
         },
         body: JSON.stringify({ message: 'App download' }),
-        isBase64Encoded: false,
       };
+
     }
 
     // Get build status
     if (path.startsWith('status/') && event.httpMethod === 'GET') {
+
       const buildId = path.split('/')[1];
 
       const buildDoc = await db.collection('appBuilds').doc(buildId).get();
+
       if (!buildDoc.exists) {
         return {
           statusCode: 404,
@@ -233,7 +238,6 @@ exports.handler = async (event, context) => {
 
       const build = buildDoc.data();
 
-      // Verify access
       if (decoded.schoolId !== build.schoolId) {
         return {
           statusCode: 403,
@@ -253,6 +257,7 @@ exports.handler = async (event, context) => {
           createdAt: build.createdAt,
         }),
       };
+
     }
 
     return {
@@ -260,12 +265,17 @@ exports.handler = async (event, context) => {
       headers,
       body: JSON.stringify({ error: 'Not found' }),
     };
+
   } catch (error) {
+
     console.error('Apps function error:', error);
+
     return {
       statusCode: 500,
       headers,
       body: JSON.stringify({ error: 'Internal server error' }),
     };
+
   }
+
 };
