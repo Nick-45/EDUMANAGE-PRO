@@ -148,7 +148,15 @@ exports.handler = async (event) => {
 
     if (event.httpMethod === 'POST' && action === 'logo') {
 
-      const { image } = JSON.parse(event.body);
+    let body;
+
+if (event.isBase64Encoded) {
+  body = JSON.parse(Buffer.from(event.body, 'base64').toString());
+} else {
+  body = JSON.parse(event.body);
+}
+
+const { image } = body;
 
       if (!image) {
         return {
