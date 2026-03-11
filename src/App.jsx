@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import { FirebaseProvider } from './context/FirebaseContext';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Setup from './pages/Setup';
@@ -26,57 +27,58 @@ const PrivateRoute = ({ children }) => {
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
-      
-      <Route
-        path="/dashboard"
-        element={
-          <PrivateRoute>
-            <Dashboard />
-          </PrivateRoute>
-        }
-      />
-      
-      <Route
-        path="/setup"
-        element={
-          <PrivateRoute>
-            <Setup />
-          </PrivateRoute>
-        }
-      />
-      
-      <Route
-        path="/payment"
-        element={
-          <PrivateRoute>
-            <Payment />
-          </PrivateRoute>
-        }
-      />
-      
-     
-      <Route
-        path="/settings"
-        element={
-          <PrivateRoute>
-            <Settings />
-          </PrivateRoute>
-        }
-      />
-      
-      <Route
-        path="/app-download"
-        element={
-          <PrivateRoute>
-            <AppDownload />
-          </PrivateRoute>
-        }
-      />
-    </Routes>
+    <FirebaseProvider>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          }
+        />
+        
+        <Route
+          path="/setup"
+          element={
+            <PrivateRoute>
+              <Setup />
+            </PrivateRoute>
+          }
+        />
+        
+        <Route
+          path="/payment"
+          element={
+            <PrivateRoute>
+              <Payment />
+            </PrivateRoute>
+          }
+        />
+        
+        <Route
+          path="/settings"
+          element={
+            <PrivateRoute>
+              <Settings />
+            </PrivateRoute>
+          }
+        />
+        
+        <Route
+          path="/app-download"
+          element={
+            <PrivateRoute>
+              <AppDownload />
+            </PrivateRoute>
+          }
+        />
+      </Routes>
+    </FirebaseProvider>
   );
 }
 
