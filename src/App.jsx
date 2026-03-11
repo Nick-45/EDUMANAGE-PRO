@@ -57,14 +57,17 @@ function App() {
           </PrivateRoute>
         }
       />
+      
+     
       <Route
-       path="/settings"
+        path="/settings"
         element={
           <PrivateRoute>
             <Settings />
           </PrivateRoute>
         }
       />
+      
       <Route
         path="/app-download"
         element={
