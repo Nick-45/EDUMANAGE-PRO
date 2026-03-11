@@ -16,31 +16,32 @@ export const useSchool = () => {
 export const SchoolProvider = ({ children }) => {
   const { user, isAuthenticated } = useAuth();
   const [school, setSchool] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [subscription, setSubscription] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (isAuthenticated && user?.schoolId) {
-      loadSchool();
-      loadSubscription();
-    } else {
+    const init = async () => {
+      if (isAuthenticated && user?.schoolId) {
+        await Promise.all([loadSchool(), loadSubscription()]);
+      }
       setLoading(false);
-    }
+    };
+    init();
   }, [isAuthenticated, user]);
 
   const loadSchool = async () => {
     try {
+      if (!user?.schoolId) return;
       const schoolData = await schoolService.getSchool(user.schoolId);
       setSchool(schoolData);
     } catch (error) {
       console.error('Failed to load school:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
   const loadSubscription = async () => {
     try {
+      if (!user?.schoolId) return;
       const subData = await schoolService.getSubscription(user.schoolId);
       setSubscription(subData);
     } catch (error) {
@@ -50,6 +51,7 @@ export const SchoolProvider = ({ children }) => {
 
   const updateSchool = async (data) => {
     try {
+      if (!school?.id) throw new Error('No school loaded');
       const updated = await schoolService.updateSchool(school.id, data);
       setSchool(updated);
       toast.success('School updated successfully');
@@ -60,24 +62,22 @@ export const SchoolProvider = ({ children }) => {
     }
   };
 
- const uploadLogo = async ({ image }) => {
-  try {
+  const uploadLogo = async ({ image }) => {
+    try {
+      if (!school?.id) throw new Error('No school loaded');
+      const updated = await schoolService.uploadLogo(school.id, { image });
+      setSchool(updated);
+      toast.success('Logo uploaded successfully');
+      return updated;
+    } catch (error) {
+      toast.error(error.message || 'Failed to upload logo');
+      throw error;
+    }
+  };
 
-    const updated = await schoolService.uploadLogo(school.id, {
-      image
-    });
-
-    setSchool(updated);
-    toast.success('Logo uploaded successfully');
-    return updated;
-
-  } catch (error) {
-    toast.error(error.message || 'Failed to upload logo');
-    throw error;
-  }
-};
   const subscribe = async (planId, paymentDetails) => {
     try {
+      if (!school?.id) throw new Error('No school loaded');
       const result = await schoolService.subscribe(school.id, planId, paymentDetails);
       setSubscription(result.subscription);
       toast.success('Subscription activated successfully');
@@ -90,6 +90,7 @@ export const SchoolProvider = ({ children }) => {
 
   const cancelSubscription = async () => {
     try {
+      if (!school?.id) throw new Error('No school loaded');
       await schoolService.cancelSubscription(school.id);
       setSubscription(null);
       toast.success('Subscription cancelled');
@@ -99,16 +100,20 @@ export const SchoolProvider = ({ children }) => {
     }
   };
 
-  const value = {
-    school,
-    subscription,
-    loading,
-    updateSchool,
-    uploadLogo,
-    subscribe,
-    cancelSubscription,
-    isActive: subscription?.status === 'active',
-  };
-
-  return <SchoolContext.Provider value={value}>{children}</SchoolContext.Provider>;
+  return (
+    <SchoolContext.Provider
+      value={{
+        school,
+        subscription,
+        loading,
+        updateSchool,
+        uploadLogo,
+        subscribe,
+        cancelSubscription,
+        isActive: subscription?.status === 'active',
+      }}
+    >
+      {children}
+    </SchoolContext.Provider>
+  );
 };
