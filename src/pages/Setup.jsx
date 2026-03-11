@@ -105,10 +105,9 @@ const Setup = () => {
         theme: { primaryColor: formData.primaryColor, secondaryColor: formData.secondaryColor, darkMode: formData.darkMode }
       });
 
-      if (formData.logo) {
-        const base64Image = await convertToBase64(formData.logo);
-        await uploadLogo({ image: base64Image });
-      }
+     if (formData.logo) {
+  await uploadLogo(formData.logo); // pass the File directly
+}
 
       toast.success("School configuration saved!");
       setStep(3);
