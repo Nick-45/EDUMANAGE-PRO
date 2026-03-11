@@ -1,6 +1,5 @@
 const admin = require('firebase-admin');
 const jwt = require('jsonwebtoken');
-const busboy = require('busboy');
 
 // Initialize Firebase Admin
 if (!admin.apps.length) {
@@ -14,9 +13,8 @@ if (!admin.apps.length) {
 }
 
 const db = admin.firestore();
-const bucket = admin.storage().bucket();
 
-exports.handler = async (event, context) => {
+exports.handler = async (event) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
@@ -29,6 +27,7 @@ exports.handler = async (event, context) => {
 
   try {
     const token = event.headers.authorization?.replace('Bearer ', '');
+
     if (!token) {
       return {
         statusCode: 401,
@@ -38,10 +37,12 @@ exports.handler = async (event, context) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const path = event.path.replace('/.netlify/functions/schools/', '');
-    const schoolId = path.split('/')[0];
 
-    // Verify user has access to this school
+    const path = event.path.replace('/.netlify/functions/schools/', '');
+    const parts = path.split('/');
+    const schoolId = parts[0];
+    const action = parts[1];
+
     if (decoded.schoolId !== schoolId) {
       return {
         statusCode: 403,
@@ -50,10 +51,12 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Get school
-    if (event.httpMethod === 'GET') {
+    // ======================
+    // GET SCHOOL
+    // ======================
+    if (event.httpMethod === 'GET' && !action) {
       const schoolDoc = await db.collection('schools').doc(schoolId).get();
-      
+
       if (!schoolDoc.exists) {
         return {
           statusCode: 404,
@@ -62,7 +65,20 @@ exports.handler = async (event, context) => {
         };
       }
 
-      // Get subscription
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          id: schoolDoc.id,
+          ...schoolDoc.data(),
+        }),
+      };
+    }
+
+    // ======================
+    // GET SUBSCRIPTION
+    // ======================
+    if (event.httpMethod === 'GET' && action === 'subscription') {
       const subscriptionDoc = await db
         .collection('subscriptions')
         .where('schoolId', '==', schoolId)
@@ -70,22 +86,24 @@ exports.handler = async (event, context) => {
         .limit(1)
         .get();
 
-      const school = schoolDoc.data();
-      const subscription = subscriptionDoc.empty ? null : subscriptionDoc.docs[0].data();
+      const subscription = subscriptionDoc.empty
+        ? null
+        : {
+            id: subscriptionDoc.docs[0].id,
+            ...subscriptionDoc.docs[0].data(),
+          };
 
       return {
         statusCode: 200,
         headers,
-        body: JSON.stringify({
-          id: schoolDoc.id,
-          ...school,
-          subscription,
-        }),
+        body: JSON.stringify(subscription),
       };
     }
 
-    // Update school
-    if (event.httpMethod === 'PUT') {
+    // ======================
+    // UPDATE SCHOOL
+    // ======================
+    if (event.httpMethod === 'PUT' && !action) {
       const updates = JSON.parse(event.body);
 
       await db.collection('schools').doc(schoolId).update({
@@ -93,82 +111,50 @@ exports.handler = async (event, context) => {
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
-      const updated = await db.collection('schools').doc(schoolId).get();
+      const updatedDoc = await db.collection('schools').doc(schoolId).get();
 
       return {
         statusCode: 200,
         headers,
         body: JSON.stringify({
-          id: updated.id,
-          ...updated.data(),
+          id: updatedDoc.id,
+          ...updatedDoc.data(),
         }),
       };
     }
 
-    // Upload logo
-    if (event.httpMethod === 'POST' && path.includes('/logo')) {
-      return new Promise((resolve) => {
-        const bb = busboy({ headers: event.headers });
+    // ======================
+    // UPDATE LOGO (CLOUDINARY)
+    // ======================
+    if (event.httpMethod === 'POST' && action === 'logo') {
+      const { logoUrl } = JSON.parse(event.body);
 
-        bb.on('file', async (fieldname, file, filename) => {
-          const filePath = `schools/${schoolId}/logo-${Date.now()}.png`;
-          const fileUpload = bucket.file(filePath);
+      if (!logoUrl) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'Logo URL required' }),
+        };
+      }
 
-          const stream = fileUpload.createWriteStream({
-            metadata: {
-              contentType: 'image/png',
-            },
-          });
-
-          stream.on('error', (error) => {
-            console.error('Upload error:', error);
-            resolve({
-              statusCode: 500,
-              headers,
-              body: JSON.stringify({ error: 'Upload failed' }),
-            });
-          });
-
-          stream.on('finish', async () => {
-            // Make public
-            await fileUpload.makePublic();
-
-            const publicUrl = `https://storage.googleapis.com/${bucket.name}/${filePath}`;
-
-            // Update school with logo URL
-            await db.collection('schools').doc(schoolId).update({
-              'branding.logo': publicUrl,
-              updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-            });
-
-            resolve({
-              statusCode: 200,
-              headers,
-              body: JSON.stringify({ logoUrl: publicUrl }),
-            });
-          });
-
-          file.pipe(stream);
-        });
-
-        bb.on('error', (error) => {
-          console.error('Busboy error:', error);
-          resolve({
-            statusCode: 500,
-            headers,
-            body: JSON.stringify({ error: 'Upload failed' }),
-          });
-        });
-
-        bb.end(event.body);
+      await db.collection('schools').doc(schoolId).update({
+        'branding.logo': logoUrl,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
+
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({ logoUrl }),
+      };
     }
 
-    // Subscribe to plan
-    if (event.httpMethod === 'POST' && path.includes('/subscribe')) {
+    // ======================
+    // SUBSCRIBE TO PLAN
+    // ======================
+    if (event.httpMethod === 'POST' && action === 'subscribe') {
       const { planId, paymentIntentId } = JSON.parse(event.body);
 
-      // Get plan details
       const plans = {
         starter: { price: 2500, students: 200 },
         professional: { price: 5000, students: 500 },
@@ -176,6 +162,7 @@ exports.handler = async (event, context) => {
       };
 
       const plan = plans[planId];
+
       if (!plan) {
         return {
           statusCode: 400,
@@ -184,7 +171,6 @@ exports.handler = async (event, context) => {
         };
       }
 
-      // Create subscription
       const subscriptionRef = await db.collection('subscriptions').add({
         schoolId,
         plan: planId,
@@ -199,16 +185,12 @@ exports.handler = async (event, context) => {
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
-      // Update school with subscription
       await db.collection('schools').doc(schoolId).update({
         subscriptionId: subscriptionRef.id,
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
-      // Send confirmation email
-      // You would trigger an email here
-
-      const subscription = await subscriptionRef.get();
+      const subscriptionDoc = await subscriptionRef.get();
 
       return {
         statusCode: 200,
@@ -216,14 +198,16 @@ exports.handler = async (event, context) => {
         body: JSON.stringify({
           subscription: {
             id: subscriptionRef.id,
-            ...subscription.data(),
+            ...subscriptionDoc.data(),
           },
         }),
       };
     }
 
-    // Cancel subscription
-    if (event.httpMethod === 'POST' && path.includes('/cancel-subscription')) {
+    // ======================
+    // CANCEL SUBSCRIPTION
+    // ======================
+    if (event.httpMethod === 'POST' && action === 'cancel-subscription') {
       const subscriptions = await db
         .collection('subscriptions')
         .where('schoolId', '==', schoolId)
@@ -250,12 +234,17 @@ exports.handler = async (event, context) => {
       headers,
       body: JSON.stringify({ error: 'Not found' }),
     };
+
   } catch (error) {
     console.error('Schools function error:', error);
+
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: 'Internal server error' }),
+      body: JSON.stringify({
+        error: 'Internal server error',
+        message: error.message,
+      }),
     };
   }
 };
