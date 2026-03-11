@@ -16,32 +16,31 @@ export const useSchool = () => {
 export const SchoolProvider = ({ children }) => {
   const { user, isAuthenticated } = useAuth();
   const [school, setSchool] = useState(null);
-  const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [subscription, setSubscription] = useState(null);
 
   useEffect(() => {
-    const init = async () => {
-      if (isAuthenticated && user?.schoolId) {
-        await Promise.all([loadSchool(), loadSubscription()]);
-      }
+    if (isAuthenticated && user?.schoolId) {
+      loadSchool();
+      loadSubscription();
+    } else {
       setLoading(false);
-    };
-    init();
+    }
   }, [isAuthenticated, user]);
 
   const loadSchool = async () => {
     try {
-      if (!user?.schoolId) return;
       const schoolData = await schoolService.getSchool(user.schoolId);
       setSchool(schoolData);
     } catch (error) {
       console.error('Failed to load school:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const loadSubscription = async () => {
     try {
-      if (!user?.schoolId) return;
       const subData = await schoolService.getSubscription(user.schoolId);
       setSubscription(subData);
     } catch (error) {
@@ -51,7 +50,6 @@ export const SchoolProvider = ({ children }) => {
 
   const updateSchool = async (data) => {
     try {
-      if (!school?.id) throw new Error('No school loaded');
       const updated = await schoolService.updateSchool(school.id, data);
       setSchool(updated);
       toast.success('School updated successfully');
@@ -62,10 +60,29 @@ export const SchoolProvider = ({ children }) => {
     }
   };
 
-  const uploadLogo = async ({ image }) => {
+  // -----------------------
+  // UPLOAD LOGO (Base64)
+  // -----------------------
+  const uploadLogo = async (file) => {
+    if (!file) {
+      toast.error('No file provided');
+      return;
+    }
+
     try {
-      if (!school?.id) throw new Error('No school loaded');
-      const updated = await schoolService.uploadLogo(school.id, { image });
+      // Convert file to Base64
+      const base64Image = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = (error) => reject(error);
+      });
+
+      // Send to API
+      const updated = await schoolService.uploadLogo(school.id, {
+        image: base64Image
+      });
+
       setSchool(updated);
       toast.success('Logo uploaded successfully');
       return updated;
@@ -77,7 +94,6 @@ export const SchoolProvider = ({ children }) => {
 
   const subscribe = async (planId, paymentDetails) => {
     try {
-      if (!school?.id) throw new Error('No school loaded');
       const result = await schoolService.subscribe(school.id, planId, paymentDetails);
       setSubscription(result.subscription);
       toast.success('Subscription activated successfully');
@@ -90,7 +106,6 @@ export const SchoolProvider = ({ children }) => {
 
   const cancelSubscription = async () => {
     try {
-      if (!school?.id) throw new Error('No school loaded');
       await schoolService.cancelSubscription(school.id);
       setSubscription(null);
       toast.success('Subscription cancelled');
@@ -100,20 +115,16 @@ export const SchoolProvider = ({ children }) => {
     }
   };
 
-  return (
-    <SchoolContext.Provider
-      value={{
-        school,
-        subscription,
-        loading,
-        updateSchool,
-        uploadLogo,
-        subscribe,
-        cancelSubscription,
-        isActive: subscription?.status === 'active',
-      }}
-    >
-      {children}
-    </SchoolContext.Provider>
-  );
+  const value = {
+    school,
+    subscription,
+    loading,
+    updateSchool,
+    uploadLogo,
+    subscribe,
+    cancelSubscription,
+    isActive: subscription?.status === 'active',
+  };
+
+  return <SchoolContext.Provider value={value}>{children}</SchoolContext.Provider>;
 };
