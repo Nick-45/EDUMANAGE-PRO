@@ -39,8 +39,7 @@ export const authService = {
 export const schoolService = {
   getSchool: (id) => api.get(`/schools/${id}`),
   updateSchool: (id, data) => api.put(`/schools/${id}`, data),
-  uploadLogo: (id, formData) => api.post(`/schools/${id}/logo`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+ uploadLogo: (id, data) => api.post(`/schools/${id}/logo`, data),
   }),
   getSubscription: (id) => api.get(`/schools/${id}/subscription`),
   subscribe: (id, planId, paymentDetails) => api.post(`/schools/${id}/subscribe`, { planId, ...paymentDetails }),
