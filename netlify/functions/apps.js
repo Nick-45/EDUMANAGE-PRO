@@ -1,8 +1,5 @@
 const admin = require('firebase-admin');
 const jwt = require('jsonwebtoken');
-const archiver = require('archiver');
-const stream = require('stream');
-const cloudinary = require('cloudinary').v2;
 
 // Firebase Init
 if (!admin.apps.length) {
@@ -17,122 +14,35 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
-// Cloudinary Init
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
 
+// TRIGGER GITHUB BUILD
+const triggerBuild = async (school, platform, buildId) => {
 
-// ANDROID APP TEMPLATE
-const generateAndroidApp = (school) => {
-  const appId = `com.edumanagerpro.${school.subdomain}`;
-
-  return `
-package ${appId};
-
-import android.os.Bundle;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
-import androidx.appcompat.app.AppCompatActivity;
-
-public class MainActivity extends AppCompatActivity {
-
-    WebView webView;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        webView = new WebView(this);
-        setContentView(webView);
-
-        WebSettings settings = webView.getSettings();
-        settings.setJavaScriptEnabled(true);
-
-        webView.setWebViewClient(new WebViewClient());
-        webView.loadUrl("https://${school.subdomain}.edumanagerpro.com");
-    }
-}
-`;
-};
-
-
-// IOS TEMPLATE
-const generateiOSApp = (school) => {
-  return `
-import UIKit
-import WebKit
-
-class ViewController: UIViewController {
-
-    var webView: WKWebView!
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-
-        webView = WKWebView()
-        view = webView
-
-        let url = URL(string: "https://${school.subdomain}.edumanagerpro.com")!
-        webView.load(URLRequest(url: url))
-    }
-}
-`;
-};
-
-
-// CREATE ZIP FILE
-const createZip = async (content, fileName) => {
-
-  const bufferStream = new stream.PassThrough();
-  const archive = archiver('zip');
-
-  archive.append(content, { name: 'app.txt' });
-  archive.finalize();
-
-  archive.pipe(bufferStream);
-
-  const chunks = [];
-
-  return new Promise((resolve, reject) => {
-
-    bufferStream.on('data', (chunk) => chunks.push(chunk));
-
-    bufferStream.on('end', () => {
-      resolve(Buffer.concat(chunks));
-    });
-
-    archive.on('error', reject);
-
-  });
-};
-
-
-// UPLOAD TO CLOUDINARY
-const uploadZip = async (buffer, fileName) => {
-
-  return new Promise((resolve, reject) => {
-
-    const uploadStream = cloudinary.uploader.upload_stream(
-      {
-        resource_type: "raw",
-        folder: "school-apps",
-        public_id: fileName
+  const response = await fetch(
+    `https://api.github.com/repos/${process.env.GITHUB_REPO}/actions/workflows/build-apk.yml/dispatches`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+        Accept: "application/vnd.github+json",
       },
-      (error, result) => {
+      body: JSON.stringify({
+        ref: "main",
+        inputs: {
+          school_name: school.name,
+          subdomain: school.subdomain,
+          logo: school.logo || "",
+          platform,
+          build_id: buildId
+        }
+      })
+    }
+  );
 
-        if (error) reject(error);
-        else resolve(result);
+  if (!response.ok) {
+    throw new Error("Failed to trigger GitHub build");
+  }
 
-      }
-    );
-
-    uploadStream.end(buffer);
-
-  });
 };
 
 
@@ -153,7 +63,11 @@ exports.handler = async (event) => {
     const token = event.headers.authorization?.replace('Bearer ', '');
 
     if (!token) {
-      return { statusCode: 401, headers, body: JSON.stringify({ error: 'Unauthorized' }) };
+      return {
+        statusCode: 401,
+        headers,
+        body: JSON.stringify({ error: 'Unauthorized' })
+      };
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -168,62 +82,51 @@ exports.handler = async (event) => {
       const { schoolId, platform } = JSON.parse(event.body);
 
       if (decoded.schoolId !== schoolId) {
-        return { statusCode: 403, headers, body: JSON.stringify({ error: 'Forbidden' }) };
+        return {
+          statusCode: 403,
+          headers,
+          body: JSON.stringify({ error: 'Forbidden' })
+        };
       }
 
       const schoolDoc = await db.collection('schools').doc(schoolId).get();
 
       if (!schoolDoc.exists) {
-        return { statusCode: 404, headers, body: JSON.stringify({ error: 'School not found' }) };
+        return {
+          statusCode: 404,
+          headers,
+          body: JSON.stringify({ error: 'School not found' })
+        };
       }
 
       const school = schoolDoc.data();
 
-      let content;
-      let fileName;
-
-      if (platform === 'android') {
-
-        content = generateAndroidApp(school);
-        fileName = `${school.subdomain}-android`;
-
-      } else if (platform === 'ios') {
-
-        content = generateiOSApp(school);
-        fileName = `${school.subdomain}-ios`;
-
-      } else {
-
-        return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid platform' }) };
-
+      if (!['android','ios'].includes(platform)) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'Invalid platform' })
+        };
       }
 
-
-      // CREATE ZIP
-      const zipBuffer = await createZip(content, fileName);
-
-
-      // UPLOAD CLOUDINARY
-      const upload = await uploadZip(zipBuffer, fileName);
-
-
-      // SAVE BUILD RECORD
+      // CREATE BUILD RECORD
       const buildRef = await db.collection('appBuilds').add({
         schoolId,
+        subdomain: school.subdomain,
         platform,
-        status: 'completed',
-        fileName: `${fileName}.zip`,
-        downloadUrl: upload.secure_url,
+        status: 'building',
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
+      // TRIGGER GITHUB BUILD
+      await triggerBuild(school, platform, buildRef.id);
 
       return {
         statusCode: 200,
         headers,
         body: JSON.stringify({
           buildId: buildRef.id,
-          downloadUrl: upload.secure_url,
+          status: 'building'
         }),
       };
 
@@ -239,7 +142,11 @@ exports.handler = async (event) => {
       const buildDoc = await db.collection('appBuilds').doc(buildId).get();
 
       if (!buildDoc.exists) {
-        return { statusCode: 404, headers, body: JSON.stringify({ error: 'Build not found' }) };
+        return {
+          statusCode: 404,
+          headers,
+          body: JSON.stringify({ error: 'Build not found' })
+        };
       }
 
       return {
@@ -260,7 +167,11 @@ exports.handler = async (event) => {
       const buildDoc = await db.collection('appBuilds').doc(buildId).get();
 
       if (!buildDoc.exists) {
-        return { statusCode: 404, headers, body: JSON.stringify({ error: 'Build not found' }) };
+        return {
+          statusCode: 404,
+          headers,
+          body: JSON.stringify({ error: 'Build not found' })
+        };
       }
 
       const build = buildDoc.data();
@@ -269,13 +180,12 @@ exports.handler = async (event) => {
         statusCode: 200,
         headers,
         body: JSON.stringify({
-          downloadUrl: build.downloadUrl
+          downloadUrl: build.downloadUrl || null,
+          status: build.status
         }),
       };
 
     }
-
-
 
     return { statusCode: 404, headers };
 
@@ -293,4 +203,5 @@ exports.handler = async (event) => {
     };
 
   }
+
 };
