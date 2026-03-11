@@ -8,6 +8,7 @@ import Payment from './pages/Payment';
 import AppDownload from './pages/AppDownload';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import Settings from './pages/settings';
 
 const PrivateRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -56,7 +57,13 @@ function App() {
           </PrivateRoute>
         }
       />
-      
+       path="/settings"
+        element={
+          <PrivateRoute>
+            <Settings />
+          </PrivateRoute>
+        }
+      />
       <Route
         path="/app-download"
         element={
