@@ -1,13 +1,19 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { authService } from '../services/auth';
-import toast from 'react-hot-toast';
+// src/context/AuthContext.js
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { auth } from '../firebase/config';
+import { 
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from 'firebase/auth';
 
 const AuthContext = createContext();
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };
@@ -15,81 +21,26 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState(localStorage.getItem('token'));
 
   useEffect(() => {
-    if (token) {
-      loadUser();
-    } else {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
       setLoading(false);
-    }
-  }, [token]);
+    });
 
-  const loadUser = async () => {
-    try {
-      const userData = await authService.getCurrentUser();
-      setUser(userData);
-    } catch (error) {
-      console.error('Failed to load user:', error);
-      logout();
-    } finally {
-      setLoading(false);
-    }
+    return unsubscribe;
+  }, []);
+
+  const login = (email, password) => {
+    return signInWithEmailAndPassword(auth, email, password);
   };
 
-  const login = async (email, password) => {
-    try {
-      const response = await authService.login(email, password);
-      setToken(response.token);
-      localStorage.setItem('token', response.token);
-      setUser(response.user);
-      toast.success('Login successful!');
-      return response;
-    } catch (error) {
-      toast.error(error.message || 'Login failed');
-      throw error;
-    }
-  };
-
-  const signup = async (userData) => {
-    try {
-      const response = await authService.signup(userData);
-      setToken(response.token);
-      localStorage.setItem('token', response.token);
-      setUser(response.user);
-      toast.success('Account created successfully!');
-      return response;
-    } catch (error) {
-      toast.error(error.message || 'Signup failed');
-      throw error;
-    }
+  const signup = (email, password) => {
+    return createUserWithEmailAndPassword(auth, email, password);
   };
 
   const logout = () => {
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem('token');
-    toast.success('Logged out successfully');
-  };
-
-  const forgotPassword = async (email) => {
-    try {
-      await authService.forgotPassword(email);
-      toast.success('Password reset email sent!');
-    } catch (error) {
-      toast.error(error.message || 'Failed to send reset email');
-      throw error;
-    }
-  };
-
-  const resetPassword = async (token, password) => {
-    try {
-      await authService.resetPassword(token, password);
-      toast.success('Password reset successfully!');
-    } catch (error) {
-      toast.error(error.message || 'Failed to reset password');
-      throw error;
-    }
+    return signOut(auth);
   };
 
   const value = {
@@ -98,10 +49,12 @@ export const AuthProvider = ({ children }) => {
     login,
     signup,
     logout,
-    forgotPassword,
-    resetPassword,
-    isAuthenticated: !!user,
+    isAuthenticated: !!user
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
