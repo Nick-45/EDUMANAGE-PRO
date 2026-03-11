@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Netlify Functions for EduManager Pro",
   "dependencies": {
-    "firebase-admin": "^11.11.0"
+    "firebase-admin": "^11.11.0",
+    "crypto": "^1.0.1"
   }
 }
