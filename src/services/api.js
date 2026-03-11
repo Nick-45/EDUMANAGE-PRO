@@ -40,7 +40,6 @@ export const schoolService = {
   getSchool: (id) => api.get(`/schools/${id}`),
   updateSchool: (id, data) => api.put(`/schools/${id}`, data),
  uploadLogo: (id, data) => api.post(`/schools/${id}/logo`, data),
-  }),
   getSubscription: (id) => api.get(`/schools/${id}/subscription`),
   subscribe: (id, planId, paymentDetails) => api.post(`/schools/${id}/subscribe`, { planId, ...paymentDetails }),
   cancelSubscription: (id) => api.post(`/schools/${id}/cancel-subscription`),
