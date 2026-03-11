@@ -39,10 +39,12 @@ export const authService = {
 export const schoolService = {
   getSchool: (id) => api.get(`/schools/${id}`),
   updateSchool: (id, data) => api.put(`/schools/${id}`, data),
- uploadLogo: (id, data) => api.post(`/schools/${id}/logo`, data),
+  uploadLogo: (id, data) => 
+    api.post(`/schools/${id}/logo`, data), // data should be { image: base64String }
   getSubscription: (id) => api.get(`/schools/${id}/subscription`),
-  subscribe: (id, planId, paymentDetails) => api.post(`/schools/${id}/subscribe`, { planId, ...paymentDetails }),
-  cancelSubscription: (id) => api.post(`/schools/${id}/cancel-subscription`),
+  subscribe: (id, planId, paymentDetails) =>
+    api.post(`/schools/${id}/subscribe`, { planId, ...paymentDetails }),
+  cancelSubscription: (id) => api.post(`/schools/${id}/cancel-subscription`)
 };
 
 export const paymentService = {
