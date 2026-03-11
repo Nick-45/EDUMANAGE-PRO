@@ -15,6 +15,7 @@ if (!admin.apps.length) {
 }
 
 const db = admin.firestore();
+db.settings({ ignoreUndefinedProperties: true });
 
 exports.handler = async (event, context) => {
   const headers = {
@@ -30,14 +31,40 @@ exports.handler = async (event, context) => {
   try {
     const path = event.path.replace('/.netlify/functions/auth/', '');
     const { httpMethod, body } = event;
-    const data = body ? JSON.parse(body) : {};
 
-    // Signup
+    let data = {};
+    if (body) {
+      try {
+        data = JSON.parse(body);
+      } catch (err) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'Invalid JSON body' }),
+        };
+      }
+    }
+
+    // =====================
+    // SIGNUP
+    // =====================
     if (path === 'signup' && httpMethod === 'POST') {
       const { schoolName, adminName, email, phone, schoolSize, password, subdomain } = data;
 
-      // Check if school exists
-      const existingSchool = await db.collection('schools').where('subdomain', '==', subdomain).get();
+      if (!schoolName || !adminName || !email || !password || !subdomain) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'Missing required fields' }),
+        };
+      }
+
+      const existingSchool = await db
+        .collection('schools')
+        .where('subdomain', '==', subdomain)
+        .limit(1)
+        .get();
+
       if (!existingSchool.empty) {
         return {
           statusCode: 400,
@@ -46,10 +73,8 @@ exports.handler = async (event, context) => {
         };
       }
 
-      // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Create school
       const schoolRef = await db.collection('schools').add({
         name: schoolName,
         subdomain,
@@ -64,7 +89,6 @@ exports.handler = async (event, context) => {
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
-      // Create user
       const userRef = await db.collection('users').add({
         schoolId: schoolRef.id,
         name: adminName,
@@ -75,25 +99,27 @@ exports.handler = async (event, context) => {
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
-      // Generate JWT
       const token = jwt.sign(
         { userId: userRef.id, schoolId: schoolRef.id, email },
         process.env.JWT_SECRET,
         { expiresIn: '15m' }
       );
 
-      // Send welcome email
-      await sendEmail({
-        to: email,
-        subject: 'Welcome to EduManagerPro!',
-        template: 'welcome',
-        data: {
-          name: adminName,
-          schoolName,
-          subdomain: `${subdomain}.edumanagerpro.com`,
-          loginUrl: `https://${subdomain}.edumanagerpro.com/login`,
-        },
-      });
+      try {
+        await sendEmail({
+          to: email,
+          subject: 'Welcome to EduManagerPro!',
+          template: 'welcome',
+          data: {
+            name: adminName,
+            schoolName,
+            subdomain: `${subdomain}.edumanagerpro.com`,
+            loginUrl: `https://${subdomain}.edumanagerpro.com/login`,
+          },
+        });
+      } catch (err) {
+        console.error('Email send failed:', err);
+      }
 
       return {
         statusCode: 201,
@@ -111,12 +137,26 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Login
+    // =====================
+    // LOGIN
+    // =====================
     if (path === 'login' && httpMethod === 'POST') {
       const { email, password } = data;
 
-      // Find user
-      const users = await db.collection('users').where('email', '==', email).limit(1).get();
+      if (!email || !password) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'Email and password are required' }),
+        };
+      }
+
+      const users = await db
+        .collection('users')
+        .where('email', '==', email)
+        .limit(1)
+        .get();
+
       if (users.empty) {
         return {
           statusCode: 401,
@@ -128,7 +168,6 @@ exports.handler = async (event, context) => {
       const userDoc = users.docs[0];
       const user = { id: userDoc.id, ...userDoc.data() };
 
-      // Verify password
       const validPassword = await bcrypt.compare(password, user.password);
       if (!validPassword) {
         return {
@@ -138,28 +177,29 @@ exports.handler = async (event, context) => {
         };
       }
 
-      // Get school
       const schoolDoc = await db.collection('schools').doc(user.schoolId).get();
       const school = schoolDoc.data();
 
-      // Generate JWT
       const token = jwt.sign(
         { userId: user.id, schoolId: user.schoolId, email: user.email },
         process.env.JWT_SECRET,
         { expiresIn: '7d' }
       );
 
-      // Send login notification
-      await sendEmail({
-        to: email,
-        subject: 'New Login Detected',
-        template: 'login-alert',
-        data: {
-          name: user.name,
-          time: new Date().toLocaleString(),
-          ip: event.headers['client-ip'] || 'Unknown',
-        },
-      });
+      try {
+        await sendEmail({
+          to: email,
+          subject: 'New Login Detected',
+          template: 'login-alert',
+          data: {
+            name: user.name,
+            time: new Date().toLocaleString(),
+            ip: event.headers['client-ip'] || 'Unknown',
+          },
+        });
+      } catch (err) {
+        console.error('Login email failed:', err);
+      }
 
       return {
         statusCode: 200,
@@ -172,16 +212,19 @@ exports.handler = async (event, context) => {
             email: user.email,
             role: user.role,
             schoolId: user.schoolId,
-            schoolName: school.name,
-            subdomain: school.subdomain,
+            schoolName: school?.name || null,
+            subdomain: school?.subdomain || null,
           },
         }),
       };
     }
 
-    // Get current user
+    // =====================
+    // GET CURRENT USER
+    // =====================
     if (path === 'me' && httpMethod === 'GET') {
       const token = event.headers.authorization?.replace('Bearer ', '');
+
       if (!token) {
         return {
           statusCode: 401,
@@ -192,11 +235,12 @@ exports.handler = async (event, context) => {
 
       try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
         const userDoc = await db.collection('users').doc(decoded.userId).get();
         const schoolDoc = await db.collection('schools').doc(decoded.schoolId).get();
 
         if (!userDoc.exists || !schoolDoc.exists) {
-          throw new Error('User or school not found');
+          throw new Error('User not found');
         }
 
         const user = userDoc.data();
@@ -224,72 +268,15 @@ exports.handler = async (event, context) => {
       }
     }
 
-    // Forgot password
-    if (path === 'forgot-password' && httpMethod === 'POST') {
-      const { email } = data;
-
-      const users = await db.collection('users').where('email', '==', email).limit(1).get();
-      if (!users.empty) {
-        const user = users.docs[0].data();
-        const resetToken = jwt.sign(
-          { userId: users.docs[0].id },
-          process.env.JWT_SECRET,
-          { expiresIn: '1h' }
-        );
-
-        await sendEmail({
-          to: email,
-          subject: 'Password Reset Request',
-          template: 'password-reset',
-          data: {
-            name: user.name,
-            resetLink: `https://edumanagerpro.com/reset-password?token=${resetToken}`,
-          },
-        });
-      }
-
-      // Always return success to prevent email enumeration
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({ message: 'If an account exists, a reset email has been sent' }),
-      };
-    }
-
-    // Reset password
-    if (path === 'reset-password' && httpMethod === 'POST') {
-      const { token, password } = data;
-
-      try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        await db.collection('users').doc(decoded.userId).update({
-          password: hashedPassword,
-          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-        });
-
-        return {
-          statusCode: 200,
-          headers,
-          body: JSON.stringify({ message: 'Password reset successful' }),
-        };
-      } catch (error) {
-        return {
-          statusCode: 400,
-          headers,
-          body: JSON.stringify({ error: 'Invalid or expired token' }),
-        };
-      }
-    }
-
     return {
       statusCode: 404,
       headers,
       body: JSON.stringify({ error: 'Not found' }),
     };
+
   } catch (error) {
     console.error('Auth function error:', error);
+
     return {
       statusCode: 500,
       headers,
