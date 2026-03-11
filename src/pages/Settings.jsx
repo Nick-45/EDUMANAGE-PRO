@@ -2,21 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSchool } from '../context/SchoolContext';
-import { db } from '../firebase/config';
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import Navbar from '../components/layout/Navbar';
 import { motion } from 'framer-motion';
 import { 
-  FaCreditCard, 
   FaCheck, 
   FaTimes,
   FaArrowLeft,
   FaExclamationTriangle,
-  FaDownload,
-  FaHistory,
   FaCalendarAlt,
-  FaSpinner
+  FaSpinner,
+  FaCreditCard,
+  FaHistory,
+  FaDownload
 } from 'react-icons/fa';
+import { toast } from 'react-hot-toast';
 
 const Settings = () => {
   const { isAuthenticated, loading: authLoading } = useAuth();
@@ -117,36 +116,36 @@ const Settings = () => {
     }
   }, [isAuthenticated, authLoading, navigate]);
 
+  // Load subscription data from Netlify function
   useEffect(() => {
     const loadSubscription = async () => {
       if (school?.id) {
         try {
           setLoading(true);
-          const schoolRef = doc(db, 'schools', school.id);
-          const schoolDoc = await getDoc(schoolRef);
           
-          if (schoolDoc.exists()) {
-            const data = schoolDoc.data();
-            const sub = data.subscription || {};
-            
-            // Check if subscription is active based on endDate
-            const now = new Date();
-            const endDate = sub.endDate ? sub.endDate.toDate() : null;
-            const isActive = endDate ? endDate > now : false;
-            
-            setSubscription({
-              ...sub,
-              isActive,
-              plan: sub.plan || 'inactive',
-              duration: sub.duration || 'monthly'
-            });
-
-            // Load billing history from subcollection
-            // This would need to be implemented based on your data structure
-            setBillingHistory(data.billingHistory || []);
+          // Call Netlify function to check subscription
+          const response = await fetch(
+            `/.netlify/functions/check-subscription?schoolId=${school.id}`
+          );
+          
+          if (!response.ok) {
+            throw new Error('Failed to fetch subscription');
           }
+          
+          const data = await response.json();
+          
+          setSubscription({
+            ...data,
+            isActive: data.isActive || false,
+            plan: data.plan || 'inactive',
+            duration: data.duration || 'monthly'
+          });
+
+          setBillingHistory(data.recentBilling || []);
+          
         } catch (error) {
           console.error('Error loading subscription:', error);
+          toast.error('Failed to load subscription data');
         } finally {
           setLoading(false);
         }
@@ -161,42 +160,39 @@ const Settings = () => {
     return subscription?.isActive && subscription?.plan === planId;
   };
 
-  // Handle subscription after payment (this would be called from a webhook or callback)
-  const updateSubscriptionAfterPayment = async (planId, duration) => {
-    try {
-      setUpdating(true);
-      const plan = plans.find(p => p.id === planId);
-      const durationDays = plan.durations[duration];
+  // Poll for subscription updates after payment
+  const startPollingSubscription = () => {
+    let attempts = 0;
+    const maxAttempts = 30;
+    const interval = setInterval(async () => {
+      attempts++;
       
-      const startDate = new Date();
-      const endDate = new Date();
-      endDate.setDate(endDate.getDate() + durationDays);
-
-      const schoolRef = doc(db, 'schools', school.id);
-      await updateDoc(schoolRef, {
-        'subscription.plan': planId,
-        'subscription.duration': duration,
-        'subscription.startDate': startDate,
-        'subscription.endDate': endDate,
-        'subscription.status': 'active',
-        'subscription.updatedAt': new Date()
-      });
-
-      // Update local state
-      setSubscription({
-        plan: planId,
-        duration: duration,
-        startDate,
-        endDate,
-        status: 'active',
-        isActive: true
-      });
-
-    } catch (error) {
-      console.error('Error updating subscription:', error);
-    } finally {
-      setUpdating(false);
-    }
+      try {
+        const response = await fetch(
+          `/.netlify/functions/check-subscription?schoolId=${school.id}`
+        );
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          if (data.isActive) {
+            clearInterval(interval);
+            setSubscription({
+              ...data,
+              isActive: true
+            });
+            toast.success('Subscription activated successfully!');
+          }
+        }
+      } catch (error) {
+        console.error('Polling error:', error);
+      }
+      
+      if (attempts >= maxAttempts) {
+        clearInterval(interval);
+        toast.error('Payment verification timeout. Please check your subscription status later.');
+      }
+    }, 5000); // Check every 5 seconds
   };
 
   const handleSubscribe = (planId, duration) => {
@@ -204,23 +200,52 @@ const Settings = () => {
     const link = paymentLinks[planId]?.[duration];
     
     if (link) {
-      // Open payment link in new tab
-      window.open(link, '_blank');
+      // Create URL with metadata
+      const paymentUrl = new URL(link);
       
-      // You would typically set up a webhook to handle the payment confirmation
-      // and then call updateSubscriptionAfterPayment
+      // Add metadata as query parameters
+      paymentUrl.searchParams.append('metadata[schoolId]', school.id);
+      paymentUrl.searchParams.append('metadata[schoolName]', school.name);
+      paymentUrl.searchParams.append('metadata[plan]', planId);
+      paymentUrl.searchParams.append('metadata[duration]', duration);
+      paymentUrl.searchParams.append('metadata[amount]', plan.price);
+      
+      // Add return URLs
+      const returnUrl = `${window.location.origin}/payment/success?schoolId=${school.id}`;
+      const cancelUrl = `${window.location.origin}/payment/cancelled`;
+      
+      paymentUrl.searchParams.append('callback_url', returnUrl);
+      paymentUrl.searchParams.append('cancel_url', cancelUrl);
+      
+      // Open payment link in new tab
+      window.open(paymentUrl.toString(), '_blank');
+      
+      // Show toast notification
+      toast.success('Redirecting to payment page...');
+      
+      // Start polling for subscription update
+      startPollingSubscription();
     }
   };
 
   const handleCancelSubscription = async () => {
     try {
       setUpdating(true);
-      const schoolRef = doc(db, 'schools', school.id);
-      await updateDoc(schoolRef, {
-        'subscription.status': 'cancelled',
-        'subscription.cancelledAt': new Date(),
-        'subscription.updatedAt': new Date()
+      
+      // Call your cancellation endpoint (you'll need to create this)
+      const response = await fetch('/.netlify/functions/cancel-subscription', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          schoolId: school.id
+        }),
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to cancel subscription');
+      }
 
       setSubscription(prev => ({
         ...prev,
@@ -229,16 +254,19 @@ const Settings = () => {
       }));
 
       setShowCancelModal(false);
+      toast.success('Subscription cancelled successfully');
+      
     } catch (error) {
       console.error('Error cancelling subscription:', error);
+      toast.error('Failed to cancel subscription');
     } finally {
       setUpdating(false);
     }
   };
 
-  const formatDate = (timestamp) => {
-    if (!timestamp) return 'N/A';
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -248,11 +276,16 @@ const Settings = () => {
 
   const getDaysRemaining = () => {
     if (!subscription?.endDate) return 0;
-    const end = subscription.endDate.toDate ? subscription.endDate.toDate() : new Date(subscription.endDate);
+    const end = new Date(subscription.endDate);
     const now = new Date();
     const diffTime = end - now;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays > 0 ? diffDays : 0;
+  };
+
+  const downloadInvoice = (invoice) => {
+    // Implement invoice download
+    toast.info('Invoice download feature coming soon');
   };
 
   if (authLoading || schoolLoading || loading) {
@@ -262,8 +295,6 @@ const Settings = () => {
       </div>
     );
   }
-
-  const currentPlan = plans.find(p => p.id === subscription?.plan) || plans[1]; // Default to premium for display
 
   return (
     <>
@@ -343,6 +374,60 @@ const Settings = () => {
               </div>
             )}
           </motion.div>
+
+          {/* Billing History Section */}
+          {billingHistory.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="bg-white rounded-lg shadow-lg p-6 mb-8"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold flex items-center">
+                  <FaHistory className="mr-2 text-primary-600" />
+                  Billing History
+                </h2>
+                <button
+                  onClick={() => {/* Download all invoices */}}
+                  className="text-primary-600 hover:text-primary-700 flex items-center text-sm"
+                >
+                  <FaDownload className="mr-1" />
+                  Download All
+                </button>
+              </div>
+              
+              <div className="space-y-3">
+                {billingHistory.map((bill, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                        <FaCreditCard className="text-primary-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium">{formatDate(bill.paymentDate)}</p>
+                        <p className="text-sm text-gray-600">{bill.invoice}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      <span className="font-semibold">{bill.amount} {bill.currency}</span>
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        bill.status === 'paid' ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600'
+                      }`}>
+                        {bill.status}
+                      </span>
+                      <button
+                        onClick={() => downloadInvoice(bill.invoice)}
+                        className="text-primary-600 hover:text-primary-700 text-sm"
+                      >
+                        <FaDownload />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
 
           {/* Available Plans */}
           <motion.div
