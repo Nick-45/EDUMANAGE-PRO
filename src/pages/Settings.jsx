@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSchool } from '../context/SchoolContext';
+import { db } from '../firebase/config';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import Navbar from '../components/layout/Navbar';
 import { motion } from 'framer-motion';
 import { 
@@ -11,36 +13,51 @@ import {
   FaArrowLeft,
   FaExclamationTriangle,
   FaDownload,
-  FaHistory
+  FaHistory,
+  FaCalendarAlt,
+  FaSpinner
 } from 'react-icons/fa';
 
 const Settings = () => {
   const { isAuthenticated, loading: authLoading } = useAuth();
-  const { school, subscription, loading: schoolLoading } = useSchool();
+  const { school, loading: schoolLoading } = useSchool();
   const navigate = useNavigate();
+  const [subscription, setSubscription] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [showCancelModal, setShowCancelModal] = useState(false);
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState(null);
+  const [updating, setUpdating] = useState(false);
+  const [billingHistory, setBillingHistory] = useState([]);
 
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      navigate('/');
+  // Payment links from Lipana.dev
+  const paymentLinks = {
+    basic: {
+      monthly: 'https://lipana.dev/pay/basic-monthly',
+      termly: 'https://lipana.dev/pay/basic-termly',
+      yearly: 'https://lipana.dev/pay/basic-yearly'
+    },
+    premium: {
+      monthly: 'https://lipana.dev/pay/premium-monthly',
+      termly: 'https://lipana.dev/pay/premium-termly',
+      yearly: 'https://lipana.dev/pay/premium-yearly'
+    },
+    enterprise: {
+      monthly: 'https://lipana.dev/pay/enterprise-monthly',
+      termly: 'https://lipana.dev/pay/enterprise-termly',
+      yearly: 'https://lipana.dev/pay/enterprise-yearly'
     }
-  }, [isAuthenticated, authLoading, navigate]);
-
-  if (authLoading || schoolLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-16 h-16 border-4 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
+  };
 
   const plans = [
     {
       id: 'basic',
       name: 'Basic',
-      price: 29,
+      price: 3500,
+      currency: 'KES',
+      durations: {
+        monthly: 31,
+        termly: 95,
+        yearly: 300
+      },
       features: [
         'Up to 100 students',
         '10 teachers',
@@ -50,10 +67,16 @@ const Settings = () => {
       ]
     },
     {
-      id: 'pro',
-      name: 'Professional',
-      price: 79,
+      id: 'premium',
+      name: 'Premium',
+      price: 5500,
+      currency: 'KES',
       popular: true,
+      durations: {
+        monthly: 31,
+        termly: 95,
+        yearly: 300
+      },
       features: [
         'Up to 500 students',
         '50 teachers',
@@ -61,13 +84,20 @@ const Settings = () => {
         'Priority support',
         'Custom branding',
         'API access',
-        'Attendance tracking'
+        'Attendance tracking',
+        'SMS notifications'
       ]
     },
     {
       id: 'enterprise',
       name: 'Enterprise',
-      price: 199,
+      price: 7500,
+      currency: 'KES',
+      durations: {
+        monthly: 31,
+        termly: 95,
+        yearly: 300
+      },
       features: [
         'Unlimited students',
         'Unlimited teachers',
@@ -75,37 +105,165 @@ const Settings = () => {
         '24/7 phone support',
         'White labeling',
         'Dedicated account manager',
-        'SMS notifications',
-        'Advanced security'
+        'Advanced analytics',
+        'Priority API access'
       ]
     }
   ];
 
-  const billingHistory = [
-    { date: '2024-01-15', amount: 79.00, status: 'paid', invoice: 'INV-2024-001' },
-    { date: '2023-12-15', amount: 79.00, status: 'paid', invoice: 'INV-2023-089' },
-    { date: '2023-11-15', amount: 79.00, status: 'paid', invoice: 'INV-2023-078' },
-  ];
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, authLoading, navigate]);
 
-  const handleUpgrade = (planId) => {
-    setSelectedPlan(planId);
-    setShowUpgradeModal(true);
+  useEffect(() => {
+    const loadSubscription = async () => {
+      if (school?.id) {
+        try {
+          setLoading(true);
+          const schoolRef = doc(db, 'schools', school.id);
+          const schoolDoc = await getDoc(schoolRef);
+          
+          if (schoolDoc.exists()) {
+            const data = schoolDoc.data();
+            const sub = data.subscription || {};
+            
+            // Check if subscription is active based on endDate
+            const now = new Date();
+            const endDate = sub.endDate ? sub.endDate.toDate() : null;
+            const isActive = endDate ? endDate > now : false;
+            
+            setSubscription({
+              ...sub,
+              isActive,
+              plan: sub.plan || 'inactive',
+              duration: sub.duration || 'monthly'
+            });
+
+            // Load billing history from subcollection
+            // This would need to be implemented based on your data structure
+            setBillingHistory(data.billingHistory || []);
+          }
+        } catch (error) {
+          console.error('Error loading subscription:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadSubscription();
+  }, [school]);
+
+  // Function to check if current plan is active
+  const isPlanActive = (planId) => {
+    return subscription?.isActive && subscription?.plan === planId;
   };
 
-  const confirmUpgrade = () => {
-    // Handle upgrade logic here
-    setShowUpgradeModal(false);
-    // Show success message or redirect to payment
+  // Handle subscription after payment (this would be called from a webhook or callback)
+  const updateSubscriptionAfterPayment = async (planId, duration) => {
+    try {
+      setUpdating(true);
+      const plan = plans.find(p => p.id === planId);
+      const durationDays = plan.durations[duration];
+      
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() + durationDays);
+
+      const schoolRef = doc(db, 'schools', school.id);
+      await updateDoc(schoolRef, {
+        'subscription.plan': planId,
+        'subscription.duration': duration,
+        'subscription.startDate': startDate,
+        'subscription.endDate': endDate,
+        'subscription.status': 'active',
+        'subscription.updatedAt': new Date()
+      });
+
+      // Update local state
+      setSubscription({
+        plan: planId,
+        duration: duration,
+        startDate,
+        endDate,
+        status: 'active',
+        isActive: true
+      });
+
+    } catch (error) {
+      console.error('Error updating subscription:', error);
+    } finally {
+      setUpdating(false);
+    }
   };
 
-  const handleCancel = () => {
-    setShowCancelModal(true);
+  const handleSubscribe = (planId, duration) => {
+    const plan = plans.find(p => p.id === planId);
+    const link = paymentLinks[planId]?.[duration];
+    
+    if (link) {
+      // Open payment link in new tab
+      window.open(link, '_blank');
+      
+      // You would typically set up a webhook to handle the payment confirmation
+      // and then call updateSubscriptionAfterPayment
+    }
   };
 
-  const confirmCancel = () => {
-    // Handle cancellation logic here
-    setShowCancelModal(false);
+  const handleCancelSubscription = async () => {
+    try {
+      setUpdating(true);
+      const schoolRef = doc(db, 'schools', school.id);
+      await updateDoc(schoolRef, {
+        'subscription.status': 'cancelled',
+        'subscription.cancelledAt': new Date(),
+        'subscription.updatedAt': new Date()
+      });
+
+      setSubscription(prev => ({
+        ...prev,
+        status: 'cancelled',
+        isActive: false
+      }));
+
+      setShowCancelModal(false);
+    } catch (error) {
+      console.error('Error cancelling subscription:', error);
+    } finally {
+      setUpdating(false);
+    }
   };
+
+  const formatDate = (timestamp) => {
+    if (!timestamp) return 'N/A';
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const getDaysRemaining = () => {
+    if (!subscription?.endDate) return 0;
+    const end = subscription.endDate.toDate ? subscription.endDate.toDate() : new Date(subscription.endDate);
+    const now = new Date();
+    const diffTime = end - now;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
+  };
+
+  if (authLoading || schoolLoading || loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-16 h-16 border-4 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  const currentPlan = plans.find(p => p.id === subscription?.plan) || plans[1]; // Default to premium for display
 
   return (
     <>
@@ -131,7 +289,7 @@ const Settings = () => {
           >
             <h1 className="text-3xl font-bold mb-2">Subscription Settings</h1>
             <p className="text-gray-600">
-              Manage your plan, billing information, and subscription details
+              Manage your plan and subscription details
             </p>
           </motion.div>
 
@@ -143,74 +301,54 @@ const Settings = () => {
             className="bg-white rounded-lg shadow-lg p-6 mb-8"
           >
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold">Current Plan</h2>
-              <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                subscription?.status === 'active' 
+              <h2 className="text-xl font-bold">Current Subscription</h2>
+              <span className={`px-3 py-1 rounded-full text-sm font-semibold flex items-center ${
+                subscription?.isActive 
                   ? 'bg-green-100 text-green-600' 
                   : 'bg-red-100 text-red-600'
               }`}>
-                {subscription?.status === 'active' ? 'Active' : 'Inactive'}
+                {updating && <FaSpinner className="animate-spin mr-2" />}
+                {subscription?.isActive ? 'Active' : 'Inactive'}
               </span>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Plan</p>
-                <p className="text-2xl font-bold capitalize">{subscription?.plan || 'Professional'}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Price</p>
-                <p className="text-2xl font-bold">$79.00 <span className="text-sm font-normal text-gray-600">/month</span></p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Start Date</p>
-                <p className="font-semibold">
-                  {subscription?.startDate ? new Date(subscription.startDate).toLocaleDateString() : 'Jan 15, 2024'}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Next Billing</p>
-                <p className="font-semibold">
-                  {subscription?.endDate ? new Date(subscription.endDate).toLocaleDateString() : 'Feb 15, 2024'}
-                </p>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Payment Method */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white rounded-lg shadow-lg p-6 mb-8"
-          >
-            <h2 className="text-xl font-bold mb-6">Payment Method</h2>
-            
-            <div className="flex items-center justify-between p-4 border rounded-lg">
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-8 bg-blue-600 rounded flex items-center justify-center text-white font-bold text-sm">
-                  VISA
+            {subscription?.isActive ? (
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Plan</p>
+                  <p className="text-2xl font-bold capitalize">{subscription?.plan || 'Premium'}</p>
                 </div>
                 <div>
-                  <p className="font-semibold">Visa ending in 4242</p>
-                  <p className="text-sm text-gray-600">Expires 12/25</p>
+                  <p className="text-sm text-gray-600 mb-1">Duration</p>
+                  <p className="text-2xl font-bold capitalize">{subscription?.duration || 'Monthly'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Start Date</p>
+                  <p className="font-semibold">{formatDate(subscription?.startDate)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">End Date</p>
+                  <p className="font-semibold">{formatDate(subscription?.endDate)}</p>
+                </div>
+                <div className="lg:col-span-4">
+                  <p className="text-sm text-gray-600 mb-1">Days Remaining</p>
+                  <p className="text-xl font-bold text-primary-600">{getDaysRemaining()} days</p>
                 </div>
               </div>
-              <button className="text-primary-600 hover:text-primary-700 font-medium">
-                Edit
-              </button>
-            </div>
-
-            <button className="mt-4 text-primary-600 hover:text-primary-700 font-medium">
-              + Add new payment method
-            </button>
+            ) : (
+              <div className="text-center py-8">
+                <FaTimes className="mx-auto text-4xl text-red-500 mb-4" />
+                <h3 className="text-xl font-bold mb-2">No Active Subscription</h3>
+                <p className="text-gray-600 mb-4">Choose a plan below to get started</p>
+              </div>
+            )}
           </motion.div>
 
           {/* Available Plans */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            transition={{ delay: 0.2 }}
             className="mb-8"
           >
             <h2 className="text-xl font-bold mb-6">Available Plans</h2>
@@ -221,7 +359,7 @@ const Settings = () => {
                   key={plan.id}
                   className={`bg-white rounded-lg shadow-lg p-6 relative ${
                     plan.popular ? 'border-2 border-primary-600' : ''
-                  }`}
+                  } ${isPlanActive(plan.id) ? 'ring-2 ring-green-500' : ''}`}
                 >
                   {plan.popular && (
                     <span className="absolute top-0 right-0 bg-primary-600 text-white px-3 py-1 text-sm rounded-bl-lg rounded-tr-lg">
@@ -229,9 +367,15 @@ const Settings = () => {
                     </span>
                   )}
                   
+                  {isPlanActive(plan.id) && (
+                    <span className="absolute top-0 left-0 bg-green-600 text-white px-3 py-1 text-sm rounded-br-lg rounded-tl-lg">
+                      Current Plan
+                    </span>
+                  )}
+                  
                   <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
                   <div className="mb-4">
-                    <span className="text-3xl font-bold">${plan.price}</span>
+                    <span className="text-3xl font-bold">{plan.price.toLocaleString()} {plan.currency}</span>
                     <span className="text-gray-600">/month</span>
                   </div>
                   
@@ -243,122 +387,62 @@ const Settings = () => {
                       </li>
                     ))}
                   </ul>
-                  
-                  <button
-                    onClick={() => handleUpgrade(plan.id)}
-                    disabled={plan.name.toLowerCase() === subscription?.plan}
-                    className={`w-full py-2 rounded-lg transition ${
-                      plan.name.toLowerCase() === subscription?.plan
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-primary-600 text-white hover:bg-primary-700'
-                    }`}
-                  >
-                    {plan.name.toLowerCase() === subscription?.plan ? 'Current Plan' : 'Upgrade'}
-                  </button>
-                </div>
-              ))}
-            </div>
-          </motion.div>
 
-          {/* Billing History */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="bg-white rounded-lg shadow-lg p-6 mb-8"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold">Billing History</h2>
-              <button className="flex items-center text-primary-600 hover:text-primary-700">
-                <FaDownload className="mr-2" />
-                Download All
-              </button>
-            </div>
-            
-            <div className="space-y-3">
-              {billingHistory.map((bill, index) => (
-                <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
-                  <div className="flex items-center space-x-4">
-                    <FaHistory className="text-gray-400" />
-                    <div>
-                      <p className="font-medium">{new Date(bill.date).toLocaleDateString('en-US', { 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
-                      })}</p>
-                      <p className="text-sm text-gray-600">{bill.invoice}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <span className="font-semibold">${bill.amount}</span>
-                    <span className="px-2 py-1 bg-green-100 text-green-600 rounded-full text-xs">
-                      {bill.status}
-                    </span>
-                    <button className="text-primary-600 hover:text-primary-700 text-sm">
-                      Download
-                    </button>
+                  {/* Duration Options */}
+                  <div className="space-y-2 mb-4">
+                    <p className="text-sm font-semibold text-gray-700 mb-2">Select Duration:</p>
+                    {Object.entries(plan.durations).map(([duration, days]) => (
+                      <button
+                        key={duration}
+                        onClick={() => handleSubscribe(plan.id, duration)}
+                        disabled={isPlanActive(plan.id) || updating}
+                        className={`w-full py-2 px-3 rounded-lg text-sm transition flex items-center justify-between ${
+                          isPlanActive(plan.id)
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            : 'bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200'
+                        }`}
+                      >
+                        <span className="capitalize">{duration}</span>
+                        <span className="flex items-center">
+                          <FaCalendarAlt className="mr-1 text-primary-600" />
+                          {days} days
+                        </span>
+                      </button>
+                    ))}
                   </div>
                 </div>
               ))}
             </div>
           </motion.div>
 
-          {/* Danger Zone */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="bg-white rounded-lg shadow-lg p-6 border-2 border-red-200"
-          >
-            <div className="flex items-center text-red-600 mb-4">
-              <FaExclamationTriangle className="mr-2" />
-              <h2 className="text-xl font-bold">Danger Zone</h2>
-            </div>
-            
-            <p className="text-gray-600 mb-4">
-              Once you cancel your subscription, all your data will be permanently deleted within 30 days.
-            </p>
-            
-            <button
-              onClick={handleCancel}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+          {/* Danger Zone - Only show if subscription is active */}
+          {subscription?.isActive && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-white rounded-lg shadow-lg p-6 border-2 border-red-200"
             >
-              Cancel Subscription
-            </button>
-          </motion.div>
+              <div className="flex items-center text-red-600 mb-4">
+                <FaExclamationTriangle className="mr-2" />
+                <h2 className="text-xl font-bold">Danger Zone</h2>
+              </div>
+              
+              <p className="text-gray-600 mb-4">
+                Once you cancel your subscription, you'll lose access to premium features at the end of your billing period.
+              </p>
+              
+              <button
+                onClick={() => setShowCancelModal(true)}
+                disabled={updating}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {updating ? 'Processing...' : 'Cancel Subscription'}
+              </button>
+            </motion.div>
+          )}
         </div>
       </div>
-
-      {/* Upgrade Confirmation Modal */}
-      {showUpgradeModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-lg p-6 max-w-md mx-4"
-          >
-            <h3 className="text-xl font-bold mb-4">Confirm Upgrade</h3>
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to upgrade to the {plans.find(p => p.id === selectedPlan)?.name} plan? 
-              Your next billing date will be adjusted accordingly.
-            </p>
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => setShowUpgradeModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmUpgrade}
-                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-              >
-                Confirm Upgrade
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
 
       {/* Cancel Confirmation Modal */}
       {showCancelModal && (
@@ -370,21 +454,23 @@ const Settings = () => {
           >
             <h3 className="text-xl font-bold mb-4">Cancel Subscription</h3>
             <p className="text-gray-600 mb-6">
-              We're sorry to see you go! Are you sure you want to cancel your subscription? 
-              Your access will continue until the end of your billing period.
+              Are you sure you want to cancel your subscription? You'll continue to have access until{' '}
+              <span className="font-semibold">{formatDate(subscription?.endDate)}</span>.
             </p>
             <div className="flex justify-end space-x-3">
               <button
                 onClick={() => setShowCancelModal(false)}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                disabled={updating}
               >
                 Keep Subscription
               </button>
               <button
-                onClick={confirmCancel}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                onClick={handleCancelSubscription}
+                disabled={updating}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
               >
-                Yes, Cancel
+                {updating ? 'Processing...' : 'Yes, Cancel'}
               </button>
             </div>
           </motion.div>
