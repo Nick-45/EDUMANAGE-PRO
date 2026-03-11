@@ -18,6 +18,12 @@
 
 [functions."payments"]
   included_files = ["node_modules/stripe/**"]
+  
+  [functions."lipana-webhook"]
+  included_files = ["node_modules/firebase-admin/**"]
+
+[functions."check-subscription"]
+  included_files = ["node_modules/firebase-admin/**"]
 
 [[redirects]]
   from = "/*"
