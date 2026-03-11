@@ -19,11 +19,11 @@ const db = admin.firestore();
 const triggerBuild = async (school, platform, buildId) => {
 
   const response = await fetch(
-    `https://api.github.com/repos/${process.env.GITHUB_REPO}/actions/workflows/build-apk.yml/dispatches`,
+    `https://api.github.com/repos/${process.env.CORDOVA_REPO}/actions/workflows/build-apk.yml/dispatches`,
     {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+        Authorization: `Bearer ${process.env.CORDOVA_TOKEN}`,
         Accept: "application/vnd.github+json",
         "Content-Type": "application/json"
       },
