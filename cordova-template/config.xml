@@ -1,7 +1,0 @@
-<widget id="com.edumanager.maxwell" version="1.0.0">
-  <name>Maxwell Academy</name>
-
-  <content src="index.html"/>
-
-  <allow-navigation href="https://maxwell.edumanagerpro.com/*"/>
-</widget>
