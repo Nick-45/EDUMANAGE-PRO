@@ -1,5 +1,6 @@
 const admin = require('firebase-admin');
 const jwt = require('jsonwebtoken');
+const cloudinary = require('cloudinary').v2;
 
 // Initialize Firebase Admin
 if (!admin.apps.length) {
@@ -14,7 +15,15 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
+// Initialize Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
 exports.handler = async (event) => {
+
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
@@ -26,6 +35,7 @@ exports.handler = async (event) => {
   }
 
   try {
+
     const token = event.headers.authorization?.replace('Bearer ', '');
 
     if (!token) {
@@ -54,7 +64,9 @@ exports.handler = async (event) => {
     // ======================
     // GET SCHOOL
     // ======================
+
     if (event.httpMethod === 'GET' && !action) {
+
       const schoolDoc = await db.collection('schools').doc(schoolId).get();
 
       if (!schoolDoc.exists) {
@@ -73,12 +85,15 @@ exports.handler = async (event) => {
           ...schoolDoc.data(),
         }),
       };
+
     }
 
     // ======================
     // GET SUBSCRIPTION
     // ======================
+
     if (event.httpMethod === 'GET' && action === 'subscription') {
+
       const subscriptionDoc = await db
         .collection('subscriptions')
         .where('schoolId', '==', schoolId)
@@ -98,12 +113,15 @@ exports.handler = async (event) => {
         headers,
         body: JSON.stringify(subscription),
       };
+
     }
 
     // ======================
     // UPDATE SCHOOL
     // ======================
+
     if (event.httpMethod === 'PUT' && !action) {
+
       const updates = JSON.parse(event.body);
 
       await db.collection('schools').doc(schoolId).update({
@@ -121,24 +139,37 @@ exports.handler = async (event) => {
           ...updatedDoc.data(),
         }),
       };
+
     }
 
     // ======================
-    // UPDATE LOGO (CLOUDINARY)
+    // UPLOAD LOGO (CLOUDINARY)
     // ======================
-    if (event.httpMethod === 'POST' && action === 'logo') {
-      const { logoUrl } = JSON.parse(event.body);
 
-      if (!logoUrl) {
+    if (event.httpMethod === 'POST' && action === 'logo') {
+
+      const { image } = JSON.parse(event.body);
+
+      if (!image) {
         return {
           statusCode: 400,
           headers,
-          body: JSON.stringify({ error: 'Logo URL required' }),
+          body: JSON.stringify({ error: 'Image required' }),
         };
       }
 
+      // Upload to Cloudinary
+      const upload = await cloudinary.uploader.upload(image, {
+        folder: 'school_logos',
+        public_id: `school-${schoolId}`,
+        overwrite: true,
+      });
+
+      const logoUrl = upload.secure_url;
+
+      // Save URL to Firestore
       await db.collection('schools').doc(schoolId).update({
-        'branding.logo': logoUrl,
+        'identity.logo': logoUrl,
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
@@ -147,12 +178,15 @@ exports.handler = async (event) => {
         headers,
         body: JSON.stringify({ logoUrl }),
       };
+
     }
 
     // ======================
-    // SUBSCRIBE TO PLAN
+    // SUBSCRIBE PLAN
     // ======================
+
     if (event.httpMethod === 'POST' && action === 'subscribe') {
+
       const { planId, paymentIntentId } = JSON.parse(event.body);
 
       const plans = {
@@ -202,12 +236,15 @@ exports.handler = async (event) => {
           },
         }),
       };
+
     }
 
     // ======================
     // CANCEL SUBSCRIPTION
     // ======================
+
     if (event.httpMethod === 'POST' && action === 'cancel-subscription') {
+
       const subscriptions = await db
         .collection('subscriptions')
         .where('schoolId', '==', schoolId)
@@ -227,6 +264,7 @@ exports.handler = async (event) => {
         headers,
         body: JSON.stringify({ success: true }),
       };
+
     }
 
     return {
@@ -236,6 +274,7 @@ exports.handler = async (event) => {
     };
 
   } catch (error) {
+
     console.error('Schools function error:', error);
 
     return {
@@ -246,5 +285,7 @@ exports.handler = async (event) => {
         message: error.message,
       }),
     };
+
   }
+
 };
