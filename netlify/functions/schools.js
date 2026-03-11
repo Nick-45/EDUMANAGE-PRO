@@ -2,7 +2,10 @@ const admin = require('firebase-admin');
 const jwt = require('jsonwebtoken');
 const cloudinary = require('cloudinary').v2;
 
-// Initialize Firebase Admin
+// ======================
+// FIREBASE INIT
+// ======================
+
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
@@ -15,12 +18,19 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
-// Initialize Cloudinary
+// ======================
+// CLOUDINARY INIT
+// ======================
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+
+// ======================
+// HANDLER
+// ======================
 
 exports.handler = async (event) => {
 
@@ -35,6 +45,31 @@ exports.handler = async (event) => {
   }
 
   try {
+
+    // ======================
+    // SAFE BODY PARSING
+    // ======================
+
+    let body = {};
+
+    if (event.body) {
+      let rawBody = event.body;
+
+      if (event.isBase64Encoded) {
+        rawBody = Buffer.from(rawBody, "base64").toString();
+      }
+
+      try {
+        body = JSON.parse(rawBody);
+      } catch (err) {
+        console.log("Body is not JSON");
+        body = {};
+      }
+    }
+
+    // ======================
+    // AUTH
+    // ======================
 
     const token = event.headers.authorization?.replace('Bearer ', '');
 
@@ -85,7 +120,6 @@ exports.handler = async (event) => {
           ...schoolDoc.data(),
         }),
       };
-
     }
 
     // ======================
@@ -113,7 +147,6 @@ exports.handler = async (event) => {
         headers,
         body: JSON.stringify(subscription),
       };
-
     }
 
     // ======================
@@ -122,7 +155,7 @@ exports.handler = async (event) => {
 
     if (event.httpMethod === 'PUT' && !action) {
 
-      const updates = JSON.parse(event.body);
+      const updates = body;
 
       await db.collection('schools').doc(schoolId).update({
         ...updates,
@@ -139,24 +172,15 @@ exports.handler = async (event) => {
           ...updatedDoc.data(),
         }),
       };
-
     }
 
     // ======================
-    // UPLOAD LOGO (CLOUDINARY)
+    // UPLOAD LOGO
     // ======================
 
     if (event.httpMethod === 'POST' && action === 'logo') {
 
-    let body;
-
-if (event.isBase64Encoded) {
-  body = JSON.parse(Buffer.from(event.body, 'base64').toString());
-} else {
-  body = JSON.parse(event.body);
-}
-
-const { image } = body;
+      const { image } = body;
 
       if (!image) {
         return {
@@ -166,7 +190,6 @@ const { image } = body;
         };
       }
 
-      // Upload to Cloudinary
       const upload = await cloudinary.uploader.upload(image, {
         folder: 'school_logos',
         public_id: `school-${schoolId}`,
@@ -175,7 +198,6 @@ const { image } = body;
 
       const logoUrl = upload.secure_url;
 
-      // Save URL to Firestore
       await db.collection('schools').doc(schoolId).update({
         'identity.logo': logoUrl,
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -186,7 +208,6 @@ const { image } = body;
         headers,
         body: JSON.stringify({ logoUrl }),
       };
-
     }
 
     // ======================
@@ -195,7 +216,7 @@ const { image } = body;
 
     if (event.httpMethod === 'POST' && action === 'subscribe') {
 
-      const { planId, paymentIntentId } = JSON.parse(event.body);
+      const { planId, paymentIntentId } = body;
 
       const plans = {
         starter: { price: 2500, students: 200 },
@@ -244,7 +265,6 @@ const { image } = body;
           },
         }),
       };
-
     }
 
     // ======================
@@ -272,7 +292,6 @@ const { image } = body;
         headers,
         body: JSON.stringify({ success: true }),
       };
-
     }
 
     return {
@@ -293,7 +312,5 @@ const { image } = body;
         message: error.message,
       }),
     };
-
   }
-
 };
