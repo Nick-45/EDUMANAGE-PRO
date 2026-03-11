@@ -25,6 +25,7 @@ const triggerBuild = async (school, platform, buildId) => {
       headers: {
         Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
         Accept: "application/vnd.github+json",
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         ref: "main",
@@ -40,7 +41,13 @@ const triggerBuild = async (school, platform, buildId) => {
   );
 
   if (!response.ok) {
-    throw new Error("Failed to trigger GitHub build");
+
+    const text = await response.text();
+
+    console.error("GitHub API ERROR:", text);
+
+    throw new Error(`GitHub build trigger failed: ${text}`);
+
   }
 
 };
