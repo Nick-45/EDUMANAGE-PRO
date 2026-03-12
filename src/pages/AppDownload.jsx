@@ -99,16 +99,16 @@ const AppDownload = () => {
 
       // Handle 409 Conflict - Build already in progress
       if (response.status === 409) {
-        toast({
-          message: (
-            <div>
-              <p className="font-medium">Build Already in Progress</p>
-              <p className="text-sm">A {platform} build is already being generated.</p>
-            </div>
-          ),
-          icon: '⏳',
-          duration: 5000
-        });
+       toast.success(
+  <div>
+    <p className="font-medium">Build Already in Progress</p>
+    <p className="text-sm">A {platform} build is already being generated.</p>
+  </div>,
+  { 
+    icon: '⏳',
+    duration: 5000 
+  }
+         );
         
         setBuildStatus(data.status || 'building');
         setBuildId(data.buildId);
