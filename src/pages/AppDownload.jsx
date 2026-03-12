@@ -7,9 +7,9 @@ import { motion } from 'framer-motion';
 import { 
   FaAndroid, FaApple, FaQrcode, FaDownload, 
   FaMobile, FaTablet, FaLaptop, FaCheckCircle,
-  FaArrowLeft, FaCopy, FaShare
+  FaArrowLeft, FaCopy, FaShare, FaSpinner,
+  FaClock, FaExclamationTriangle
 } from 'react-icons/fa';
-import { appService } from '../services/api';
 import toast from 'react-hot-toast';
 import QRCode from 'qrcode.react';
 
@@ -21,6 +21,8 @@ const AppDownload = () => {
   const [buildStatus, setBuildStatus] = useState(null);
   const [downloading, setDownloading] = useState(false);
   const [buildId, setBuildId] = useState(null);
+  const [existingBuildId, setExistingBuildId] = useState(null);
+  const [pollingInterval, setPollingInterval] = useState(null);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -28,59 +30,194 @@ const AppDownload = () => {
     }
   }, [isAuthenticated, navigate]);
 
+  // Check for existing builds on component mount
+  useEffect(() => {
+    if (school?.id) {
+      checkExistingBuilds();
+    }
+  }, [school]);
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+      }
+    };
+  }, [pollingInterval]);
+
+  const checkExistingBuilds = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/.netlify/functions/apps/list', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const activeBuild = data.builds?.find(
+          build => ['pending', 'building'].includes(build.status)
+        );
+        
+        if (activeBuild) {
+          setBuildStatus(activeBuild.status);
+          setBuildId(activeBuild.id);
+          setExistingBuildId(activeBuild.id);
+          // Start polling for this existing build
+          pollBuildStatus(activeBuild.id);
+          
+          toast.success(
+            `Found an existing ${activeBuild.platform} build in progress`,
+            { duration: 4000 }
+          );
+        }
+      }
+    } catch (error) {
+      console.error('Error checking existing builds:', error);
+    }
+  };
+
   const handleGenerateApp = async (platform) => {
     setDownloading(true);
     try {
-      const response = await appService.generateApp(school.id, platform);
-      setBuildId(response.buildId);
-      setBuildStatus('generating');
+      const token = localStorage.getItem('token');
+      const response = await fetch('/.netlify/functions/apps/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          schoolId: school.id,
+          platform: platform
+        })
+      });
+
+      const data = await response.json();
+
+      // Handle 409 Conflict - Build already in progress
+      if (response.status === 409) {
+        toast({
+          message: (
+            <div>
+              <p className="font-medium">Build Already in Progress</p>
+              <p className="text-sm">A {platform} build is already being generated.</p>
+            </div>
+          ),
+          icon: '⏳',
+          duration: 5000
+        });
+        
+        setBuildStatus(data.status || 'building');
+        setBuildId(data.buildId);
+        setExistingBuildId(data.buildId);
+        pollBuildStatus(data.buildId);
+        setDownloading(false);
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to start build');
+      }
+
+      // Success - build started
       toast.success('App generation started. This may take a few minutes.');
+      setBuildId(data.buildId);
+      setBuildStatus('pending');
+      setExistingBuildId(data.buildId);
       
-      // Poll for status
-      pollBuildStatus(response.buildId);
+      // Start polling for status
+      pollBuildStatus(data.buildId);
+
     } catch (error) {
+      console.error('Error generating app:', error);
       toast.error(error.message || 'Failed to generate app');
+      setBuildStatus(null);
+      setBuildId(null);
+    } finally {
       setDownloading(false);
     }
   };
 
-  const pollBuildStatus = async (id) => {
+  const pollBuildStatus = (id) => {
+    // Clear any existing interval
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+    }
+
     const interval = setInterval(async () => {
       try {
-        const status = await appService.getAppStatus(id);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/.netlify/functions/apps/status/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch status');
+        }
+
+        const status = await response.json();
+        
         if (status.status === 'completed') {
           setBuildStatus('completed');
           setBuildId(id);
           clearInterval(interval);
-          setDownloading(false);
-          toast.success('App is ready for download!');
+          setPollingInterval(null);
+          toast.success('Your app is ready for download!');
         } else if (status.status === 'failed') {
           setBuildStatus('failed');
           clearInterval(interval);
-          setDownloading(false);
-          toast.error('App generation failed. Please try again.');
+          setPollingInterval(null);
+          toast.error(status.error || 'App generation failed. Please try again.');
+        } else {
+          setBuildStatus(status.status);
         }
       } catch (error) {
         console.error('Error polling build status:', error);
       }
     }, 5000);
+
+    setPollingInterval(interval);
   };
 
   const handleDownload = async () => {
     try {
-      const blob = await appService.downloadApp(buildId);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${school?.subdomain}-${selectedPlatform}.zip`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      toast.success('Download started!');
+      setDownloading(true);
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/.netlify/functions/apps/download/${buildId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get download URL');
+      }
+
+      const data = await response.json();
+      
+      if (data.downloadUrl) {
+        window.open(data.downloadUrl, '_blank');
+        toast.success('Download started!');
+      } else {
+        throw new Error('No download URL available');
+      }
     } catch (error) {
-      toast.error('Failed to download app');
+      console.error('Error downloading app:', error);
+      toast.error(error.message || 'Failed to download app');
+    } finally {
+      setDownloading(false);
     }
+  };
+
+  const handleRetry = () => {
+    setBuildStatus(null);
+    setBuildId(null);
+    setExistingBuildId(null);
   };
 
   const copySubdomain = () => {
@@ -94,10 +231,48 @@ const AppDownload = () => {
         title: `${school?.name} Mobile App`,
         text: `Download the official ${school?.name} mobile app`,
         url: `https://${school?.subdomain}.edumanagerpro.com/app`,
+      }).catch(() => {
+        copySubdomain();
       });
     } else {
       copySubdomain();
     }
+  };
+
+  const getStatusBadge = () => {
+    if (!buildStatus) return null;
+
+    const statusConfig = {
+      'pending': {
+        icon: <FaClock className="animate-pulse" />,
+        text: 'Pending',
+        className: 'bg-yellow-100 text-yellow-800'
+      },
+      'building': {
+        icon: <FaSpinner className="animate-spin" />,
+        text: 'Building',
+        className: 'bg-blue-100 text-blue-800'
+      },
+      'completed': {
+        icon: <FaCheckCircle />,
+        text: 'Ready',
+        className: 'bg-green-100 text-green-800'
+      },
+      'failed': {
+        icon: <FaExclamationTriangle />,
+        text: 'Failed',
+        className: 'bg-red-100 text-red-800'
+      }
+    };
+
+    const config = statusConfig[buildStatus] || statusConfig['pending'];
+    
+    return (
+      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${config.className}`}>
+        <span className="mr-2">{config.icon}</span>
+        {config.text}
+      </span>
+    );
   };
 
   return (
@@ -164,16 +339,20 @@ const AppDownload = () => {
               transition={{ delay: 0.2 }}
             >
               <div className="bg-white rounded-2xl shadow-lg p-8">
-                <h3 className="text-2xl font-bold mb-6">Choose Platform</h3>
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-2xl font-bold">Choose Platform</h3>
+                  {buildStatus && getStatusBadge()}
+                </div>
                 
                 <div className="space-y-4 mb-8">
                   <button
                     onClick={() => setSelectedPlatform('android')}
+                    disabled={buildStatus === 'building' || buildStatus === 'pending'}
                     className={`w-full p-6 rounded-xl border-2 transition-all ${
                       selectedPlatform === 'android'
                         ? 'border-primary-600 bg-primary-50'
                         : 'border-gray-200 hover:border-primary-300'
-                    }`}
+                    } ${buildStatus === 'building' || buildStatus === 'pending' ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <div className="flex items-center">
                       <div className={`w-12 h-12 rounded-xl ${
@@ -195,11 +374,12 @@ const AppDownload = () => {
 
                   <button
                     onClick={() => setSelectedPlatform('ios')}
+                    disabled={buildStatus === 'building' || buildStatus === 'pending'}
                     className={`w-full p-6 rounded-xl border-2 transition-all ${
                       selectedPlatform === 'ios'
                         ? 'border-primary-600 bg-primary-50'
                         : 'border-gray-200 hover:border-primary-300'
-                    }`}
+                    } ${buildStatus === 'building' || buildStatus === 'pending' ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <div className="flex items-center">
                       <div className={`w-12 h-12 rounded-xl ${
@@ -228,7 +408,7 @@ const AppDownload = () => {
                   >
                     {downloading ? (
                       <>
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                        <FaSpinner className="animate-spin mr-2" />
                         Generating App...
                       </>
                     ) : (
@@ -240,13 +420,25 @@ const AppDownload = () => {
                   </button>
                 )}
 
-                {buildStatus === 'generating' && (
+                {buildStatus === 'pending' && (
                   <div className="mt-6 p-4 bg-yellow-50 rounded-lg">
                     <div className="flex items-center">
-                      <div className="w-5 h-5 border-2 border-yellow-600 border-t-transparent rounded-full animate-spin mr-3"></div>
+                      <FaClock className="text-yellow-600 mr-3 animate-pulse" />
                       <div>
-                        <p className="font-medium text-yellow-800">Building your app...</p>
-                        <p className="text-sm text-yellow-600">This may take a few minutes</p>
+                        <p className="font-medium text-yellow-800">Build pending...</p>
+                        <p className="text-sm text-yellow-600">Your build request is queued and will start soon</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {buildStatus === 'building' && (
+                  <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                    <div className="flex items-center">
+                      <FaSpinner className="text-blue-600 mr-3 animate-spin" />
+                      <div>
+                        <p className="font-medium text-blue-800">Building your app...</p>
+                        <p className="text-sm text-blue-600">This may take a few minutes. We'll notify you when it's ready.</p>
                       </div>
                     </div>
                   </div>
@@ -261,10 +453,20 @@ const AppDownload = () => {
                       </div>
                       <button
                         onClick={handleDownload}
-                        className="w-full py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 flex items-center justify-center"
+                        disabled={downloading}
+                        className="w-full py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 flex items-center justify-center disabled:opacity-50"
                       >
-                        <FaDownload className="mr-2" />
-                        Download {selectedPlatform === 'android' ? 'APK' : 'IPA'}
+                        {downloading ? (
+                          <>
+                            <FaSpinner className="animate-spin mr-2" />
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <FaDownload className="mr-2" />
+                            Download {selectedPlatform === 'android' ? 'APK' : 'IPA'}
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
@@ -272,14 +474,32 @@ const AppDownload = () => {
 
                 {buildStatus === 'failed' && (
                   <div className="mt-6 p-4 bg-red-50 rounded-lg">
-                    <p className="text-red-800 font-medium">App generation failed</p>
-                    <p className="text-sm text-red-600 mt-1">Please try again or contact support</p>
-                    <button
-                      onClick={() => handleGenerateApp(selectedPlatform)}
-                      className="mt-3 w-full py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-                    >
-                      Retry
-                    </button>
+                    <div className="flex items-center text-red-800 mb-2">
+                      <FaExclamationTriangle className="mr-2" />
+                      <span className="font-medium">App generation failed</span>
+                    </div>
+                    <p className="text-sm text-red-600 mb-3">Please try again or contact support</p>
+                    <div className="flex space-x-3">
+                      <button
+                        onClick={handleRetry}
+                        className="flex-1 py-2 border border-red-300 text-red-700 rounded-lg hover:bg-red-100"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => handleGenerateApp(selectedPlatform)}
+                        className="flex-1 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Show existing build info */}
+                {existingBuildId && buildStatus !== 'completed' && buildStatus !== 'failed' && (
+                  <div className="mt-4 text-sm text-gray-500 text-center">
+                    Build ID: {existingBuildId.slice(0, 8)}...
                   </div>
                 )}
               </div>
@@ -320,20 +540,22 @@ const AppDownload = () => {
                 </div>
 
                 {/* QR Code */}
-                <div className="text-center">
-                  <h4 className="font-semibold mb-3">Scan to Download</h4>
-                  <div className="inline-block p-4 bg-white border-2 border-gray-200 rounded-xl">
-                    <QRCode
-                      value={`https://${school?.subdomain}.edumanagerpro.com/download/${selectedPlatform}`}
-                      size={150}
-                      level="H"
-                      includeMargin={true}
-                    />
+                {buildStatus === 'completed' && (
+                  <div className="text-center">
+                    <h4 className="font-semibold mb-3">Scan to Download</h4>
+                    <div className="inline-block p-4 bg-white border-2 border-gray-200 rounded-xl">
+                      <QRCode
+                        value={`https://${school?.subdomain}.edumanagerpro.com/download/${selectedPlatform}`}
+                        size={150}
+                        level="H"
+                        includeMargin={true}
+                      />
+                    </div>
+                    <p className="text-sm text-gray-600 mt-3">
+                      Scan with your phone to download the app directly
+                    </p>
                   </div>
-                  <p className="text-sm text-gray-600 mt-3">
-                    Scan with your phone to download the app directly
-                  </p>
-                </div>
+                )}
 
                 {/* Instructions */}
                 <div className="mt-6 p-4 bg-gray-50 rounded-lg">
