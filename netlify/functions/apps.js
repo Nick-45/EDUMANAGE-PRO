@@ -42,32 +42,39 @@ const verifyBuildCallback = (payload, signature) => {
 
 // TRIGGER GITHUB BUILD
 const triggerBuild = async (school, platform, buildId) => {
-  const response = await fetch(
-    `https://api.github.com/repos/${process.env.CORDOVA_REPO}/actions/workflows/build-apk.yml/dispatches`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.CORDOVA_TOKEN}`,
-        Accept: "application/vnd.github+json",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        ref: "main",
-        inputs: {
-          school_name: school.name,
-          subdomain: school.subdomain,
-          logo: school.logo || "",
-          platform,
-          build_id: buildId
-        }
-      })
-    }
-  );
+  try {
+    const response = await fetch(
+      `https://api.github.com/repos/${process.env.CORDOVA_REPO}/actions/workflows/build-apk.yml/dispatches`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.CORDOVA_TOKEN}`,
+          Accept: "application/vnd.github+json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          ref: "main",
+          inputs: {
+            school_name: school.name,
+            subdomain: school.subdomain,
+            logo: school.logo || "",
+            platform,
+            build_id: buildId
+          }
+        })
+      }
+    );
 
-  if (!response.ok) {
-    const text = await response.text();
-    console.error("GitHub API ERROR:", text);
-    throw new Error(`GitHub build trigger failed: ${text}`);
+    if (!response.ok) {
+      const text = await response.text();
+      console.error("GitHub API ERROR:", text);
+      throw new Error(`GitHub build trigger failed: ${text}`);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error triggering build:', error);
+    throw error;
   }
 };
 
@@ -131,11 +138,9 @@ exports.handler = async (event) => {
     console.log('HTTP Method:', event.httpMethod);
 
     // PUBLIC WEBHOOK ENDPOINT - No JWT required
-    // BUILD COMPLETION CALLBACK from GitHub Actions
     if (path === 'build-complete' && event.httpMethod === 'POST') {
       console.log('📱 Build completion callback received');
       
-      // Verify signature
       const signature = event.headers['x-build-signature'];
       const payload = JSON.parse(event.body);
       
@@ -159,14 +164,7 @@ exports.handler = async (event) => {
       }
 
       console.log(`Build ${buildId} completed with status: ${status}`);
-
-      // Update build status in Firestore
-      await updateBuildStatus(
-        buildId, 
-        status, 
-        downloadUrl, 
-        error
-      );
+      await updateBuildStatus(buildId, status, downloadUrl, error);
 
       return {
         statusCode: 200,
@@ -190,6 +188,79 @@ exports.handler = async (event) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log('Authenticated school:', decoded.schoolId);
+
+    // LIST BUILDS for a school
+    if (path === 'list' && event.httpMethod === 'GET') {
+      const schoolId = decoded.schoolId;
+      console.log('Listing builds for school:', schoolId);
+
+      try {
+        // Try with index first
+        const buildsSnapshot = await db.collection('appBuilds')
+          .where('schoolId', '==', schoolId)
+          .orderBy('createdAt', 'desc')
+          .limit(10)
+          .get();
+
+        const builds = [];
+        buildsSnapshot.forEach(doc => {
+          const data = doc.data();
+          builds.push({
+            id: doc.id,
+            ...data,
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : data.createdAt,
+            updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().toISOString() : data.updatedAt,
+            completedAt: data.completedAt?.toDate ? data.completedAt.toDate().toISOString() : data.completedAt
+          });
+        });
+
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({ builds }),
+        };
+      } catch (error) {
+        // If index is building, fall back to simple query without order
+        if (error.message.includes('FAILED_PRECONDITION') || error.message.includes('index')) {
+          console.log('Index is building, using fallback query');
+          
+          const buildsSnapshot = await db.collection('appBuilds')
+            .where('schoolId', '==', schoolId)
+            .get();
+
+          const builds = [];
+          buildsSnapshot.forEach(doc => {
+            const data = doc.data();
+            builds.push({
+              id: doc.id,
+              ...data,
+              createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : data.createdAt,
+              updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().toISOString() : data.updatedAt,
+              completedAt: data.completedAt?.toDate ? data.completedAt.toDate().toISOString() : data.completedAt
+            });
+          });
+
+          // Client-side sorting
+          builds.sort((a, b) => {
+            const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+            const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+            return dateB - dateA;
+          });
+
+          return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify({ 
+              builds: builds.slice(0, 10),
+              message: 'Index is building, showing limited results'
+            }),
+          };
+        }
+        
+        throw error;
+      }
+    }
 
     // GENERATE APP
     if (path === 'generate' && event.httpMethod === 'POST') {
@@ -224,25 +295,62 @@ exports.handler = async (event) => {
       }
 
       // Check if there's already a build in progress
-      const existingBuilds = await db.collection('appBuilds')
-        .where('schoolId', '==', schoolId)
-        .where('platform', '==', platform)
-        .where('status', 'in', ['pending', 'building'])
-        .orderBy('createdAt', 'desc')
-        .limit(1)
-        .get();
+      try {
+        const existingBuilds = await db.collection('appBuilds')
+          .where('schoolId', '==', schoolId)
+          .where('platform', '==', platform)
+          .where('status', 'in', ['pending', 'building'])
+          .orderBy('createdAt', 'desc')
+          .limit(1)
+          .get();
 
-      if (!existingBuilds.empty) {
-        const existingBuild = existingBuilds.docs[0].data();
-        return {
-          statusCode: 409,
-          headers,
-          body: JSON.stringify({ 
-            error: 'Build already in progress',
-            buildId: existingBuilds.docs[0].id,
-            status: existingBuild.status
-          })
-        };
+        if (!existingBuilds.empty) {
+          const existingBuild = existingBuilds.docs[0].data();
+          return {
+            statusCode: 409,
+            headers,
+            body: JSON.stringify({ 
+              error: 'Build already in progress',
+              buildId: existingBuilds.docs[0].id,
+              status: existingBuild.status,
+              platform: existingBuild.platform
+            })
+          };
+        }
+      } catch (error) {
+        // If index is building, do a simpler check
+        if (error.message.includes('FAILED_PRECONDITION') || error.message.includes('index')) {
+          console.log('Index is building, using simplified conflict check');
+          
+          const existingBuilds = await db.collection('appBuilds')
+            .where('schoolId', '==', schoolId)
+            .where('platform', '==', platform)
+            .get();
+
+          const hasActiveBuild = existingBuilds.docs.some(doc => {
+            const data = doc.data();
+            return ['pending', 'building'].includes(data.status);
+          });
+
+          if (hasActiveBuild) {
+            const activeBuild = existingBuilds.docs.find(doc => 
+              ['pending', 'building'].includes(doc.data().status)
+            );
+            
+            return {
+              statusCode: 409,
+              headers,
+              body: JSON.stringify({ 
+                error: 'Build already in progress',
+                buildId: activeBuild?.id,
+                status: activeBuild?.data().status,
+                platform
+              })
+            };
+          }
+        } else {
+          throw error;
+        }
       }
 
       // CREATE BUILD RECORD
@@ -307,9 +415,9 @@ exports.handler = async (event) => {
         headers,
         body: JSON.stringify({
           ...buildData,
-          createdAt: buildData.createdAt?.toDate().toISOString(),
-          updatedAt: buildData.updatedAt?.toDate().toISOString(),
-          completedAt: buildData.completedAt?.toDate().toISOString()
+          createdAt: buildData.createdAt?.toDate ? buildData.createdAt.toDate().toISOString() : buildData.createdAt,
+          updatedAt: buildData.updatedAt?.toDate ? buildData.updatedAt.toDate().toISOString() : buildData.updatedAt,
+          completedAt: buildData.completedAt?.toDate ? buildData.completedAt.toDate().toISOString() : buildData.completedAt
         }),
       };
     }
@@ -347,39 +455,9 @@ exports.handler = async (event) => {
           downloadUrl: build.downloadUrl || null,
           status: build.status,
           platform: build.platform,
-          createdAt: build.createdAt?.toDate().toISOString(),
-          completedAt: build.completedAt?.toDate().toISOString()
+          createdAt: build.createdAt?.toDate ? build.createdAt.toDate().toISOString() : build.createdAt,
+          completedAt: build.completedAt?.toDate ? build.completedAt.toDate().toISOString() : build.completedAt
         }),
-      };
-    }
-
-    // LIST BUILDS for a school
-    if (path === 'list' && event.httpMethod === 'GET') {
-      const schoolId = decoded.schoolId;
-      console.log('Listing builds for school:', schoolId);
-
-      const buildsSnapshot = await db.collection('appBuilds')
-        .where('schoolId', '==', schoolId)
-        .orderBy('createdAt', 'desc')
-        .limit(10)
-        .get();
-
-      const builds = [];
-      buildsSnapshot.forEach(doc => {
-        const data = doc.data();
-        builds.push({
-          id: doc.id,
-          ...data,
-          createdAt: data.createdAt?.toDate().toISOString(),
-          updatedAt: data.updatedAt?.toDate().toISOString(),
-          completedAt: data.completedAt?.toDate().toISOString()
-        });
-      });
-
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({ builds }),
       };
     }
 
