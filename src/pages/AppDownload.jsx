@@ -51,7 +51,7 @@ const AppDownload = () => {
   };
 
   const copySubdomain = () => {
-    navigator.clipboard.writeText(`${school?.subdomain}.edumanagerpro.com`);
+    navigator.clipboard.writeText(`${school?.subdomain}.edupriva.com`);
     toast.success('URL copied to clipboard!');
   };
 
@@ -60,7 +60,7 @@ const AppDownload = () => {
       navigator.share({
         title: `${school?.name} Mobile App`,
         text: `Download the official ${school?.name} mobile app`,
-        url: `https://${school?.subdomain}.edumanagerpro.com/app`,
+        url: `https://${school?.subdomain}.edupriva.com/app`,
       }).catch(() => {
         copySubdomain();
       });
@@ -124,7 +124,7 @@ const AppDownload = () => {
                   <span className="text-sm opacity-90">Your URL:</span>
                   <div className="flex items-center mt-1">
                     <code className="bg-white/10 px-2 py-1 rounded">
-                      {school?.subdomain}.edumanagerpro.com
+                      {school?.subdomain}.edupriva.com
                     </code>
                     <button
                       onClick={copySubdomain}
@@ -200,7 +200,7 @@ const AppDownload = () => {
                   ) : (
                     <>
                       <FaDownload className="mr-2" />
-                      Download EDUMANAGE Pro.apk
+                      Download EDUPRIVA.apk
                     </>
                   )}
                 </button>
