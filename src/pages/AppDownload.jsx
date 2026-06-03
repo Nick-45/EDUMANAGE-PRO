@@ -341,7 +341,7 @@ const AppDownload = () => {
                     <div>
                       <h5 className="font-medium text-yellow-800 text-sm">Security Note</h5>
                       <p className="text-xs text-yellow-700 mt-1">
-                        This is a safe, official app from EduManager Pro. The "unknown sources" warning appears because you're installing outside the Play Store. This is normal for enterprise apps.
+                        This is a safe, official app from EduPriva. The "unknown sources" warning appears because you're installing outside the Play Store. This is normal for enterprise apps.
                       </p>
                     </div>
                   </div>
