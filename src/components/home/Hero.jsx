@@ -52,7 +52,7 @@ const Hero = () => {
               variants={itemVariants}
               className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto lg:mx-0"
             >
-              Complete school management solution with multi-school isolation, custom branding, and mobile apps.
+              Complete school management solution , Powering modern education.
             </motion.p>
 
             <motion.div
