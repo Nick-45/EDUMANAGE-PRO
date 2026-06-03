@@ -19,11 +19,11 @@ const Footer = () => {
           >
             <h3 className="text-2xl font-display font-bold mb-4">
               <span className="bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
-                EduManagerPro
+               EduPriva
               </span>
             </h3>
             <p className="text-gray-400 mb-4">
-              Complete school management solution with multi-school isolation, custom branding, and mobile apps.
+              Complete school management solution ,Powering modern education.
             </p>
             <div className="flex space-x-4">
               <a
@@ -150,14 +150,14 @@ const Footer = () => {
               </li>
               <li className="flex items-center">
                 <FaPhone className="mr-3 text-primary-500 flex-shrink-0" />
-                <a href="tel:+254114963959" className="text-gray-400 hover:text-primary-500 transition">
+                <a href="tel:+2547 573 573 07" className="text-gray-400 hover:text-primary-500 transition">
                   +254 114 963 959
                 </a>
               </li>
               <li className="flex items-center">
                 <FaEnvelope className="mr-3 text-primary-500 flex-shrink-0" />
                 <a href="mailto:info@edumanagerpro.com" className="text-gray-400 hover:text-primary-500 transition">
-                  info@edumanagerpro.com
+                  info.edupriva@gmail.com
                 </a>
               </li>
             </ul>
@@ -168,7 +168,7 @@ const Footer = () => {
         <div className="border-t border-gray-800 pt-8 mt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-500 text-sm">
-              &copy; {currentYear} EduManagerPro. All rights reserved.
+              &copy; {currentYear} EduPriva. All rights reserved.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <Link to="/privacy" className="text-gray-500 hover:text-primary-500 text-sm transition">
