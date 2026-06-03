@@ -32,8 +32,8 @@ const AppDownload = () => {
     
     // Create a link element and trigger download
     const link = document.createElement('a');
-    link.href = '/EDUMANAGE Pro.apk';
-    link.download = 'EDUMANAGE Pro.apk';
+    link.href = '/EDUPRIVA.apk';
+    link.download = 'EDUPRIVA.apk';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -165,7 +165,7 @@ const AppDownload = () => {
                       className="w-20 h-20 rounded-2xl shadow-lg"
                     />
                     <div>
-                      <h4 className="text-xl font-bold">EDUMANAGE Pro</h4>
+                      <h4 className="text-xl font-bold">EduPriva</h4>
                       <p className="text-gray-600">Version 1.0.0</p>
                       <div className="flex items-center mt-2 text-sm text-gray-500">
                         <FaAndroid className="mr-1 text-green-600" />
@@ -224,7 +224,7 @@ const AppDownload = () => {
                     <h4 className="font-semibold mb-3">Scan with your phone</h4>
                     <div className="inline-block p-4 bg-white border-2 border-gray-200 rounded-xl">
                       <QRCode
-                        value={`${window.location.origin}/EDUMANAGE Pro.apk`}
+                        value={`${window.location.origin}/EduPriva.apk`}
                         size={200}
                         level="H"
                         includeMargin={true}
