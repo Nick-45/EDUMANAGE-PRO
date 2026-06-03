@@ -35,7 +35,7 @@ const Navbar = () => {
             <FaGraduationCap />
           </div>
           <span className="font-display font-bold text-2xl bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent">
-            EduManagerPro
+            EduPriva
           </span>
         </Link>
 
