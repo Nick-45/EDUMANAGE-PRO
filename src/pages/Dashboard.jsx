@@ -117,7 +117,7 @@ const Dashboard = () => {
               <div>
                 <p className="text-sm text-gray-600 mb-1">Subdomain</p>
                 <p className="font-semibold text-primary-600">
-                  {school?.subdomain}.edumanagerpro.com
+                  {school?.subdomain}.edupriva.com
                 </p>
               </div>
               <div>
