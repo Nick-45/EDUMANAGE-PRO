@@ -13,7 +13,7 @@ const Home = () => {
   return (
     <>
       <Helmet>
-        <title>EduManagerPro - SaaS School Management Platform</title>
+        <title>EduPriva - SaaS School Management Platform</title>
         <meta name="description" content="Complete school management solution with multi-school isolation, custom branding, and mobile apps." />
       </Helmet>
 
