@@ -6,9 +6,27 @@
   html {
     scroll-behavior: smooth;
   }
-  
+
   body {
-    @apply bg-gray-50 text-gray-900 font-sans;
+    @apply bg-black-950 text-gray-100 font-sans antialiased;
+  }
+
+  ::selection {
+    @apply bg-gold-500 text-black-950;
+  }
+
+  /* Optional: subtle gold-tinted scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-black-900;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gold-700 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gold-500;
   }
 }
 
@@ -16,29 +34,49 @@
   .container {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
-  
+
+  /* Shiny gold primary button */
   .btn-primary {
-    @apply bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 hover:-translate-y-1;
+    @apply relative overflow-hidden bg-gold-gradient text-black-950 px-6 py-3 rounded-lg font-semibold
+           shadow-gold-glow hover:shadow-gold-glow-lg
+           transition-all duration-300 hover:-translate-y-1
+           bg-[length:200%_100%];
   }
-  
+  .btn-primary:hover {
+    animation: shimmer 1.5s linear infinite;
+  }
+
+  /* Gold-outline secondary button */
   .btn-secondary {
-    @apply border-2 border-primary-600 text-primary-600 px-6 py-3 rounded-lg font-semibold hover:bg-primary-50 transition-all duration-300;
+    @apply border-2 border-gold-500 text-gold-400 px-6 py-3 rounded-lg font-semibold
+           hover:bg-gold-500/10 hover:text-gold-300 hover:border-gold-400
+           transition-all duration-300;
   }
-  
+
   .section-title {
-    @apply text-4xl md:text-5xl font-bold mb-4;
+    @apply text-4xl md:text-5xl font-bold mb-4 font-display text-white;
   }
-  
+
   .section-subtitle {
-    @apply text-xl text-gray-600 max-w-3xl mx-auto;
+    @apply text-xl text-gray-400 max-w-3xl mx-auto;
+  }
+
+  /* Optional helpers to reuse the theme */
+  .text-gold-gradient {
+    @apply bg-gold-shine bg-clip-text text-transparent bg-[length:200%_100%];
+  }
+
+  .card-dark {
+    @apply bg-ink-soft border border-gold-700/30 rounded-xl shadow-inner-dark;
   }
 }
+
+/* ---------- Animations ---------- */
 
 @keyframes float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-20px); }
 }
-
 .animate-float {
   animation: float 3s ease-in-out infinite;
 }
@@ -47,7 +85,24 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
 }
-
 .animate-pulse-slow {
   animation: pulse 3s ease-in-out infinite;
+}
+
+/* Gold shine sweep for gradient backgrounds */
+@keyframes shimmer {
+  0%   { background-position: 0% 0; }
+  100% { background-position: 200% 0; }
+}
+.animate-shimmer {
+  animation: shimmer 3s linear infinite;
+}
+
+/* Soft gold halo pulse */
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 15px rgba(212, 175, 55, 0.3); }
+  50%      { box-shadow: 0 0 30px rgba(212, 175, 55, 0.6); }
+}
+.animate-glow {
+  animation: glow 2.5s ease-in-out infinite;
 }
