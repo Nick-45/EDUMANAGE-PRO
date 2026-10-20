@@ -8,22 +8,21 @@
   }
 
   body {
-    @apply bg-black-950 text-gray-100 font-sans antialiased;
+    @apply bg-navy-950 text-gray-100 font-sans antialiased;
   }
 
   ::selection {
-    @apply bg-gold-500 text-black-950;
+    @apply bg-sky-400 text-navy-950;
   }
 
-  /* Optional: subtle gold-tinted scrollbar */
   ::-webkit-scrollbar {
     width: 10px;
   }
   ::-webkit-scrollbar-track {
-    @apply bg-black-900;
+    @apply bg-navy-900;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-gold-700 rounded-full;
+    @apply bg-sky-600 rounded-full;
   }
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-gold-500;
@@ -37,7 +36,7 @@
 
   /* Shiny gold primary button */
   .btn-primary {
-    @apply relative overflow-hidden bg-gold-gradient text-black-950 px-6 py-3 rounded-lg font-semibold
+    @apply relative overflow-hidden bg-gold-gradient text-navy-950 px-6 py-3 rounded-lg font-semibold
            shadow-gold-glow hover:shadow-gold-glow-lg
            transition-all duration-300 hover:-translate-y-1
            bg-[length:200%_100%];
@@ -46,10 +45,10 @@
     animation: shimmer 1.5s linear infinite;
   }
 
-  /* Gold-outline secondary button */
+  /* Sky-blue secondary button */
   .btn-secondary {
-    @apply border-2 border-gold-500 text-gold-400 px-6 py-3 rounded-lg font-semibold
-           hover:bg-gold-500/10 hover:text-gold-300 hover:border-gold-400
+    @apply border-2 border-sky-400 text-sky-300 px-6 py-3 rounded-lg font-semibold
+           hover:bg-sky-400/10 hover:text-sky-200 hover:border-sky-300
            transition-all duration-300;
   }
 
@@ -58,16 +57,23 @@
   }
 
   .section-subtitle {
-    @apply text-xl text-gray-400 max-w-3xl mx-auto;
+    @apply text-xl text-sky-100/70 max-w-3xl mx-auto;
   }
 
-  /* Optional helpers to reuse the theme */
+  /* Gradient-clipped text helpers */
   .text-gold-gradient {
     @apply bg-gold-shine bg-clip-text text-transparent bg-[length:200%_100%];
   }
+  .text-sky-gradient {
+    @apply bg-sky-gradient bg-clip-text text-transparent;
+  }
 
+  /* Cards */
   .card-dark {
-    @apply bg-ink-soft border border-gold-700/30 rounded-xl shadow-inner-dark;
+    @apply bg-navy-900 border border-sky-500/20 rounded-xl shadow-inner-dark;
+  }
+  .card-gold {
+    @apply bg-navy-900 border border-gold-600/30 rounded-xl shadow-inner-dark;
   }
 }
 
@@ -89,7 +95,6 @@
   animation: pulse 3s ease-in-out infinite;
 }
 
-/* Gold shine sweep for gradient backgrounds */
 @keyframes shimmer {
   0%   { background-position: 0% 0; }
   100% { background-position: 200% 0; }
@@ -98,7 +103,6 @@
   animation: shimmer 3s linear infinite;
 }
 
-/* Soft gold halo pulse */
 @keyframes glow {
   0%, 100% { box-shadow: 0 0 15px rgba(212, 175, 55, 0.3); }
   50%      { box-shadow: 0 0 30px rgba(212, 175, 55, 0.6); }
