@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
@@ -14,6 +14,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleChange = (e) => {
     setFormData({
@@ -27,10 +28,28 @@ const Login = () => {
     setLoading(true);
 
     try {
-      await login(formData.email, formData.password);
-      navigate('/dashboard');
+      const response = await login(formData.email, formData.password);
+
+      // Where to send the user after login:
+      // 1. If they were redirected here from a protected route, return there.
+      // 2. Super admins always go to /admin.
+      // 3. Everyone else goes to /dashboard.
+      const from = location.state?.from;
+      const role = response?.user?.role;
+
+      if (from && from !== '/login') {
+        navigate(from, { replace: true });
+      } else if (role === 'super_admin') {
+        navigate('/admin', { replace: true });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
     } catch (error) {
-      toast.error(error.message || 'Login failed');
+      const msg =
+        typeof error === 'string'
+          ? error
+          : error?.message || 'Login failed';
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -53,7 +72,7 @@ const Login = () => {
             <div className="w-20 h-20 rounded-2xl bg-navy-950 border border-gold-500/40 shadow-gold-glow flex items-center justify-center p-3">
               <img
                 src="/logo192.png"
-                alt="School Logo"
+                alt="EduPriva Logo"
                 className="w-full h-full object-contain"
               />
             </div>
@@ -174,6 +193,18 @@ const Login = () => {
               </Link>
             </p>
           </div>
+
+          <p className="text-center text-xs text-sky-200/40">
+            By signing in you agree to our{' '}
+            <Link to="/terms" className="text-sky-300/70 hover:text-gold-400 transition">
+              Terms
+            </Link>{' '}
+            and{' '}
+            <Link to="/privacy" className="text-sky-300/70 hover:text-gold-400 transition">
+              Privacy Policy
+            </Link>
+            .
+          </p>
         </form>
       </motion.div>
     </div>
