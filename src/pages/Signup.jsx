@@ -80,14 +80,8 @@ const Signup = () => {
         return;
       }
 
-      // Generate subdomain
-      const subdomain = formData.schoolName
-        .toLowerCase()
-        .trim()
-        .replace(/\s+/g, '-')
-        .replace(/[^a-z0-9-]/g, '')
-        .slice(0, 20);
-
+      // Subdomain is no longer generated here — the super admin assigns it
+      // after reviewing the application.
       await signup({
         schoolName: formData.schoolName,
         adminName: formData.adminName,
@@ -95,9 +89,9 @@ const Signup = () => {
         phone: formData.phone,
         schoolSize: formData.schoolSize,
         password: formData.password,
-        subdomain
       });
 
+      toast.success('Account created! Let\'s finish setting up your school.');
       navigate('/setup');
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -113,12 +107,6 @@ const Signup = () => {
       setLoading(false);
     }
   };
-
-  const generatedSubdomain = formData.schoolName
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '');
 
   // Shared input classes
   const inputBase =
@@ -184,10 +172,7 @@ const Signup = () => {
 
               {formData.schoolName && (
                 <p className="text-xs text-sky-300/70 mt-1">
-                  Your school URL:{' '}
-                  <span className="text-gold-400 font-medium">
-                    {generatedSubdomain}.edumanagerpro.com
-                  </span>
+                  Your school URL will be assigned by our team after approval.
                 </p>
               )}
 
@@ -257,7 +242,7 @@ const Signup = () => {
                   value={formData.phone}
                   onChange={handleChange}
                   className={`${inputBase} pl-10`}
-                  placeholder="+1 555 123 4567"
+                  placeholder="+254 700 123 456"
                 />
               </div>
 
@@ -365,17 +350,33 @@ const Signup = () => {
             </div>
 
             {/* Terms */}
-            <div className="flex items-center">
+            <div className="flex items-start">
               <input
                 type="checkbox"
                 name="terms"
                 checked={formData.terms}
                 onChange={handleChange}
-                className="h-4 w-4 mr-2 text-gold-500 focus:ring-gold-400 border-sky-500/40 bg-navy-950 rounded"
+                className="h-4 w-4 mt-1 mr-2 text-gold-500 focus:ring-gold-400 border-sky-500/40 bg-navy-950 rounded"
               />
 
               <span className="text-sm text-sky-100/80">
-                I agree to the Terms of Service
+                I agree to the{' '}
+                <Link
+                  to="/terms"
+                  target="_blank"
+                  className="text-gold-400 hover:text-gold-300 underline"
+                >
+                  Terms of Service
+                </Link>{' '}
+                and{' '}
+                <Link
+                  to="/privacy"
+                  target="_blank"
+                  className="text-gold-400 hover:text-gold-300 underline"
+                >
+                  Privacy Policy
+                </Link>
+                .
               </span>
             </div>
           </div>
