@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || '/.netlify/functions';
+const API_URL = process.env.REACT_APP_API_URL || '/api';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -28,36 +28,38 @@ api.interceptors.response.use(
   }
 );
 
+// --- Auth ---
 export const authService = {
-  login: (email, password) => api.post('/auth/login', { email, password }),
-  signup: (data) => api.post('/auth/signup', data),
-  getCurrentUser: () => api.get('/auth/me'),
-  forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
-  resetPassword: (token, password) => api.post('/auth/reset-password', { token, password }),
+  login: (email, password) => api.post('/auth-login', { email, password }),
+  signup: (data) => api.post('/auth-signup', data),
+  getCurrentUser: () => api.get('/schools-me'),
 };
 
+// --- Schools (user-side) ---
 export const schoolService = {
-  getSchool: (id) => api.get(`/schools/${id}`),
-  updateSchool: (id, data) => api.put(`/schools/${id}`, data),
-  uploadLogo: (id, data) => 
-    api.post(`/schools/${id}/logo`, data), // data should be { image: base64String }
-  getSubscription: (id) => api.get(`/schools/${id}/subscription`),
-  subscribe: (id, planId, paymentDetails) =>
-    api.post(`/schools/${id}/subscribe`, { planId, ...paymentDetails }),
-  cancelSubscription: (id) => api.post(`/schools/${id}/cancel-subscription`)
+  getMySchool: () => api.get('/schools-me'),
+  submitApplication: (data) => api.post('/schools-apply', data),
+  uploadLogo: (dataUrl) => api.post('/schools-upload-logo', { dataUrl }),
 };
 
-export const paymentService = {
-  createPaymentIntent: (amount, currency = 'kes') => api.post('/payments/create-intent', { amount, currency }),
-  confirmPayment: (paymentIntentId) => api.post('/payments/confirm', { paymentIntentId }),
-  mpesaSTKPush: (phone, amount) => api.post('/payments/mpesa/stk-push', { phone, amount }),
-  mpesaStatus: (checkoutRequestId) => api.get(`/payments/mpesa/status/${checkoutRequestId}`),
+// --- Admin (super admin) ---
+export const adminService = {
+  listSchools: (status) =>
+    api.get('/admin-schools-list', { params: status ? { status } : {} }),
+  getSchool: (id) => api.get('/admin-schools-get', { params: { id } }),
+  updateStatus: (id, status, note) =>
+    api.patch('/admin-schools-status', { id, status, note }),
+  setSubdomain: (id, subdomain) =>
+    api.patch('/admin-schools-subdomain', { id, subdomain }),
+  setApk: (id, payload) => api.patch('/admin-schools-apk', { id, ...payload }),
+  listUsers: () => api.get('/admin-users-list'),
+  getLegal: () => api.get('/legal-get'),
+  saveLegal: (terms, privacy) => api.put('/legal-put', { terms, privacy }),
 };
 
-export const appService = {
-  generateApp: (schoolId, platform) => api.post(`/apps/generate`, { schoolId, platform }),
-  downloadApp: (buildId) => api.get(`/apps/download/${buildId}`, { responseType: 'blob' }),
-  getAppStatus: (buildId) => api.get(`/apps/status/${buildId}`),
+// --- Legal (public) ---
+export const legalService = {
+  get: () => api.get('/legal-get'),
 };
 
 export default api;
