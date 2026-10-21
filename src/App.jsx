@@ -1,140 +1,61 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { useAuth } from './AuthContext';
-import { schoolService } from '../services/api';
-import toast from 'react-hot-toast';
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from './context/AuthContext';
 
-const SchoolContext = createContext();
+import Home from './pages/Home';
+import Dashboard from './pages/Dashboard';
+import Setup from './pages/Setup';
+import Payment from './pages/Payment';
+import AppDownload from './pages/AppDownload';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import Settings from './pages/Settings';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
 
-export const useSchool = () => {
-  const context = useContext(SchoolContext);
-  if (!context) {
-    throw new Error('useSchool must be used within SchoolProvider');
+import AdminGuard from './pages/admin/AdminGuard';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import SchoolDetail from './pages/admin/SchoolDetail';
+import AdminUsers from './pages/admin/AdminUsers';
+import LegalEditor from './pages/admin/LegalEditor';
+
+const PrivateRoute = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-navy-gradient flex items-center justify-center">
+        <div className="w-16 h-16 border-4 border-gold-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
   }
-  return context;
+
+  return isAuthenticated ? children : <Navigate to="/login" />;
 };
 
-export const SchoolProvider = ({ children }) => {
-  const { user, isAuthenticated } = useAuth();
-  const [school, setSchool] = useState(null);
-  const [loading, setLoading] = useState(true);
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/privacy" element={<Privacy />} />
 
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      loadSchool();
-    } else {
-      setSchool(null);
-      setLoading(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, user?.schoolId]);
+      <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+      <Route path="/setup" element={<PrivateRoute><Setup /></PrivateRoute>} />
+      <Route path="/payment" element={<PrivateRoute><Payment /></PrivateRoute>} />
+      <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
+      <Route path="/app-download" element={<PrivateRoute><AppDownload /></PrivateRoute>} />
 
-  const loadSchool = async () => {
-    try {
-      const schoolData = await schoolService.getMySchool();
-      setSchool(schoolData);
-    } catch (error) {
-      // A 401 is already handled by the axios interceptor (redirects to /).
-      // For 404s during onboarding the school may simply not exist yet — keep null.
-      if (error?.status !== 404) {
-        console.error('Failed to load school:', error);
-      }
-      setSchool(null);
-    } finally {
-      setLoading(false);
-    }
-  };
+      <Route path="/admin" element={<AdminGuard><AdminDashboard /></AdminGuard>} />
+      <Route path="/admin/schools/:id" element={<AdminGuard><SchoolDetail /></AdminGuard>} />
+      <Route path="/admin/users" element={<AdminGuard><AdminUsers /></AdminGuard>} />
+      <Route path="/admin/legal" element={<AdminGuard><LegalEditor /></AdminGuard>} />
 
-  const refresh = () => loadSchool();
+      <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
+  );
+}
 
-  // Submit or update the full school application (Setup step 2)
-  const updateSchool = async (data) => {
-    try {
-      await schoolService.submitApplication(data);
-      await loadSchool();
-      toast.success('School information saved');
-      return school;
-    } catch (error) {
-      toast.error(error.message || 'Failed to save school');
-      throw error;
-    }
-  };
-
-  // Alias used by the new Setup page
-  const submitApplication = updateSchool;
-
-  // -----------------------
-  // UPLOAD LOGO (Base64 → Cloudinary)
-  // -----------------------
-  const uploadLogo = async (file) => {
-    if (!file) throw new Error('No file provided');
-
-    const base64Image = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = (error) => reject(error);
-    });
-
-    try {
-      const result = await schoolService.uploadLogo(base64Image);
-      await loadSchool();
-      toast.success('Logo uploaded successfully');
-      return result;
-    } catch (error) {
-      toast.error(error.message || 'Failed to upload logo');
-      throw error;
-    }
-  };
-
-  // Subscription helpers (read-only for now; wiring lives in Settings/Payment)
-  const subscribe = async (planId, paymentDetails) => {
-    try {
-      const result = await schoolService.subscribe(planId, paymentDetails);
-      await loadSchool();
-      toast.success('Subscription activated successfully');
-      return result;
-    } catch (error) {
-      toast.error(error.message || 'Failed to activate subscription');
-      throw error;
-    }
-  };
-
-  const cancelSubscription = async () => {
-    try {
-      await schoolService.cancelSubscription();
-      await loadSchool();
-      toast.success('Subscription cancelled');
-    } catch (error) {
-      toast.error(error.message || 'Failed to cancel subscription');
-      throw error;
-    }
-  };
-
-  // Derived values used across the app
-  const subscription = school?.subscription || null;
-  const status = school?.status || null;
-  const isActive = status === 'active';
-  const isPending = ['pending', 'in_review', 'app_building', 'app_ready'].includes(status);
-  const isRejected = status === 'rejected';
-  const hasApp = !!school?.app?.apkFile;
-
-  const value = {
-    school,
-    subscription,
-    loading,
-    refresh,
-    updateSchool,
-    submitApplication,
-    uploadLogo,
-    subscribe,
-    cancelSubscription,
-    // status convenience flags
-    status,
-    isActive,
-    isPending,
-    isRejected,
-    hasApp,
-  };
-
-  return <SchoolContext.Provider value={value}>{children}</SchoolContext.Provider>;
-};
+export default App;
