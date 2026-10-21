@@ -8,23 +8,11 @@
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["nodemailer", "stripe", "bcryptjs", "jsonwebtoken", "firebase-admin"]
+  external_node_modules = ["firebase-admin", "bcryptjs", "jsonwebtoken"]
 
-[functions."auth"]
-  included_files = ["node_modules/nodemailer/**", "node_modules/bcryptjs/**", "node_modules/jsonwebtoken/**"]
-
-[functions."email"]
-  included_files = ["node_modules/nodemailer/**"]
-
-[functions."payments"]
-  included_files = ["node_modules/stripe/**"]
-  
-  [functions."lipana-webhook"]
-  included_files = ["node_modules/firebase-admin/**"]
-
-[functions."check-subscription"]
-  included_files = ["node_modules/firebase-admin/**"]
-
+# SPA fallback — MUST come after any /api redirects.
+# Since REACT_APP_API_URL points directly at /.netlify/functions,
+# we don't need an /api/* rewrite at all.
 [[redirects]]
   from = "/*"
   to = "/index.html"
