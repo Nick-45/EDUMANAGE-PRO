@@ -1,7 +1,10 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
+import { SchoolProvider } from './context/SchoolContext';
 import { FirebaseProvider } from './context/FirebaseContext';
+
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Setup from './pages/Setup';
@@ -13,7 +16,6 @@ import Settings from './pages/Settings';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 
-// Admin
 import AdminGuard from './pages/admin/AdminGuard';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import SchoolDetail from './pages/admin/SchoolDetail';
@@ -37,27 +39,30 @@ const PrivateRoute = ({ children }) => {
 function App() {
   return (
     <FirebaseProvider>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/terms" element={<Terms />} />
-        <Route path="/privacy" element={<Privacy />} />
+      <AuthProvider>
+        <SchoolProvider>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
 
-        <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-        <Route path="/setup" element={<PrivateRoute><Setup /></PrivateRoute>} />
-        <Route path="/payment" element={<PrivateRoute><Payment /></PrivateRoute>} />
-        <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
-        <Route path="/app-download" element={<PrivateRoute><AppDownload /></PrivateRoute>} />
+            <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+            <Route path="/setup" element={<PrivateRoute><Setup /></PrivateRoute>} />
+            <Route path="/payment" element={<PrivateRoute><Payment /></PrivateRoute>} />
+            <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
+            <Route path="/app-download" element={<PrivateRoute><AppDownload /></PrivateRoute>} />
 
-        {/* Super Admin */}
-        <Route path="/admin" element={<AdminGuard><AdminDashboard /></AdminGuard>} />
-        <Route path="/admin/schools/:id" element={<AdminGuard><SchoolDetail /></AdminGuard>} />
-        <Route path="/admin/users" element={<AdminGuard><AdminUsers /></AdminGuard>} />
-        <Route path="/admin/legal" element={<AdminGuard><LegalEditor /></AdminGuard>} />
+            <Route path="/admin" element={<AdminGuard><AdminDashboard /></AdminGuard>} />
+            <Route path="/admin/schools/:id" element={<AdminGuard><SchoolDetail /></AdminGuard>} />
+            <Route path="/admin/users" element={<AdminGuard><AdminUsers /></AdminGuard>} />
+            <Route path="/admin/legal" element={<AdminGuard><LegalEditor /></AdminGuard>} />
 
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </SchoolProvider>
+      </AuthProvider>
     </FirebaseProvider>
   );
 }
