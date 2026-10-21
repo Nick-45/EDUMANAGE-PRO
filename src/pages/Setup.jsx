@@ -17,28 +17,25 @@ const SCHOOL_LEVELS = [
 
 const Setup = () => {
   const { user } = useAuth();
-  const { school, submitApplication, uploadLogo } = useSchool();
+  const { school, submitApplication, updateSchool, uploadLogo } = useSchool();
   const navigate = useNavigate();
+
+  const submitFn = submitApplication || updateSchool;
 
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
-    // Identity
     name: '', motto: '', address: '', pobox: '', phone: '', email: '', website: '',
-    // Academic
     level: 'junior_school',
     classPrefix: 'Grade',
     classNumbers: '1,2,3',
     streamNames: 'North,South',
     subjects: 'Mathematics,English,Kiswahili,Science',
-    // Theme
     primaryColor: '#1B5E20',
     secondaryColor: '#D4AF37',
     darkMode: true,
-    // Subscription
     plan: 'basic',
-    // Terms
     acceptTerms: false,
     acceptPrivacy: false
   });
@@ -100,17 +97,25 @@ const Setup = () => {
       toast.error('Please accept the Terms of Service and Privacy Policy');
       return;
     }
+
+    if (typeof submitFn !== 'function') {
+      toast.error('School context is misconfigured (submitApplication missing). Please refresh.');
+      console.error('submitApplication is not a function. useSchool returned:', { school, submitApplication, updateSchool });
+      return;
+    }
+    if (logoFile && typeof uploadLogo !== 'function') {
+      toast.error('School context is misconfigured (uploadLogo missing). Please refresh.');
+      console.error('uploadLogo is not a function. useSchool returned:', { school, uploadLogo });
+      return;
+    }
+
     setLoading(true);
     try {
-      // Upload logo first (so super admin sees it in the review queue)
-      if (logoFile) {
-        await uploadLogo(logoFile);
-      }
-
       const classes = generateClasses(formData.classPrefix, formData.classNumbers, formData.streamNames);
       const subjects = generateSubjects(formData.subjects);
 
-      await submitApplication({
+      // 1. Save the application (school doc already exists from signup)
+      await submitFn({
         identity: {
           name: formData.name, motto: formData.motto, address: formData.address,
           pobox: formData.pobox, phone: formData.phone, email: formData.email,
@@ -132,10 +137,21 @@ const Setup = () => {
         status: 'pending'
       });
 
+      // 2. Then upload the logo (school doc is guaranteed to exist now)
+      if (logoFile) {
+        try {
+          await uploadLogo(logoFile);
+        } catch (logoErr) {
+          console.error('Logo upload failed:', logoErr);
+          toast.error('School saved, but logo upload failed. You can retry from Settings.');
+        }
+      }
+
       toast.success('Application submitted! Our team will review it shortly.');
       setStep(3);
     } catch (error) {
-      toast.error(error.message || 'Failed to submit application');
+      toast.error(error?.message || 'Failed to submit application');
+      console.error('Submit application error:', error);
     } finally {
       setLoading(false);
     }
