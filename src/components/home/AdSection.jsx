@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FaChevronLeft, FaChevronRight, FaBullhorn } from 'react-icons/fa';
-import { getFirestore, collection, getDocs, query, where, doc, updateDoc, increment } from 'firebase/firestore';
+import { collection, getDocs, query, where, doc, updateDoc, increment } from 'firebase/firestore';
+// USE YOUR EXISTING CONFIG FILE:
+import { db } from '../../firebase/config'; 
 
 const AdSection = () => {
   const [internalAds, setInternalAds] = useState([]);
@@ -15,7 +17,6 @@ const AdSection = () => {
   useEffect(() => {
     const fetchAds = async () => {
       try {
-        const db = getFirestore();
         const q = query(collection(db, 'ads'), where('active', '==', true));
         const snapshot = await getDocs(q);
         const adsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -54,12 +55,9 @@ const AdSection = () => {
   useEffect(() => {
     if (internalAds.length > 0 && internalAds[currentIndex]) {
       const currentAdId = internalAds[currentIndex].id;
-      const db = getFirestore();
       
-      // Increment impression count in Firestore
       const adRef = doc(db, 'ads', currentAdId);
       updateDoc(adRef, { impressions: increment(1) }).catch(err => {
-        // Silently fail if user isn't authenticated or blocked by rules
         console.warn('Could not log impression', err);
       });
     }
@@ -68,11 +66,9 @@ const AdSection = () => {
   const next = () => setCurrentIndex((prev) => (prev + 1) % internalAds.length);
   const prev = () => setCurrentIndex((prev) => (prev - 1 + internalAds.length) % internalAds.length);
   
-  // Track Clicks
   const handleAdClick = async () => {
     if (!internalAds[currentIndex]) return;
     try {
-      const db = getFirestore();
       await updateDoc(doc(db, 'ads', internalAds[currentIndex].id), { 
         clicks: increment(1) 
       });
@@ -81,7 +77,7 @@ const AdSection = () => {
     }
   };
 
-  if (loading || internalAds.length === 0) return null; // Hide section if no ads
+  if (loading || internalAds.length === 0) return null;
 
   const currentAd = internalAds[currentIndex];
 
@@ -95,7 +91,7 @@ const AdSection = () => {
 
         <div className="grid lg:grid-cols-2 gap-8 items-center">
           
-          {/* LEFT SIDE: Dynamic Internal Carousel Ad */}
+          {/* LEFT SIDE */}
           <div className="relative">
             <motion.div
               key={currentAd.id}
@@ -134,7 +130,7 @@ const AdSection = () => {
               </div>
             </motion.div>
 
-            {/* Carousel Controls */}
+            {/* Controls */}
             {internalAds.length > 1 && (
               <>
                 <button onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/40 text-white rounded-full flex items-center justify-center hover:bg-black/60 backdrop-blur-sm z-20">
@@ -147,7 +143,7 @@ const AdSection = () => {
             )}
           </div>
 
-          {/* RIGHT SIDE: Google AdSense Container */}
+          {/* RIGHT SIDE */}
           <div className="bg-navy-900/50 border border-sky-500/20 rounded-2xl p-4 flex flex-col items-center justify-center min-h-[250px] relative overflow-hidden">
             <span className="absolute top-2 right-2 text-[10px] text-sky-100/30 uppercase tracking-widest">Ad</span>
             
