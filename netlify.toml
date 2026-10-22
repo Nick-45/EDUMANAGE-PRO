@@ -1,18 +1,16 @@
 [build]
-  command = "npm run build"
-  functions = "netlify/functions"
+  command = "CI='' npm run build"
   publish = "build"
+  functions = "netlify/functions"
 
 [build.environment]
+  NODE_VERSION = "18"
   REACT_APP_API_URL = "/.netlify/functions"
 
 [functions]
   node_bundler = "esbuild"
   external_node_modules = ["firebase-admin", "bcryptjs", "jsonwebtoken"]
 
-# SPA fallback — MUST come after any /api redirects.
-# Since REACT_APP_API_URL points directly at /.netlify/functions,
-# we don't need an /api/* rewrite at all.
 [[redirects]]
   from = "/*"
   to = "/index.html"
