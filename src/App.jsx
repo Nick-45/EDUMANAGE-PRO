@@ -18,6 +18,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import SchoolDetail from './pages/admin/SchoolDetail';
 import AdminUsers from './pages/admin/AdminUsers';
 import LegalEditor from './pages/admin/LegalEditor';
+import AdminAds from './pages/admin/AdminAds';
 
 const PrivateRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -52,6 +53,7 @@ function App() {
       <Route path="/admin/schools/:id" element={<AdminGuard><SchoolDetail /></AdminGuard>} />
       <Route path="/admin/users" element={<AdminGuard><AdminUsers /></AdminGuard>} />
       <Route path="/admin/legal" element={<AdminGuard><LegalEditor /></AdminGuard>} />
+      <Route path="/admin/ads" element={<AdminGuard><AdminAds /></AdminGuard>} />
 
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
