@@ -89,6 +89,28 @@ const AdminDashboard = () => {
               <FaSync className={`mr-2 ${loading ? 'animate-spin' : ''}`} />
               Refresh
             </button>
+             
+  <Link
+    to="/admin/ads"
+    className="px-4 py-2 border border-sky-500/30 text-sky-300 rounded-lg hover:bg-sky-500/10"
+  >
+    Manage Ads
+  </Link>
+
+  <Link
+    to="/admin/users"
+    className="px-4 py-2 border border-sky-500/30 text-sky-300 rounded-lg hover:bg-sky-500/10"
+  >
+    All Users
+  </Link>
+  <Link
+    to="/admin/legal"
+    className="px-4 py-2 border border-sky-500/30 text-sky-300 rounded-lg hover:bg-sky-500/10"
+  >
+    Legal Pages
+  </Link>
+</div>
+
             <Link
               to="/admin/users"
               className="px-4 py-2 border border-sky-500/30 text-sky-300 rounded-lg hover:bg-sky-500/10"
