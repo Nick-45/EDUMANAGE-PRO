@@ -69,5 +69,11 @@ export const legalService = {
   get: () => api.get('/legal-get'),
   save: (terms, privacy) => api.put('/legal-put', { terms, privacy }),
 };
+// --- Payments (endpoints to be implemented) ---
+export const paymentService = {
+  createPayment: (data) => api.post('/payments-create', data),
+  verifyPayment: (reference) =>
+    api.get('/payments-verify', { params: { reference } }),
+};
 
 export default api;
