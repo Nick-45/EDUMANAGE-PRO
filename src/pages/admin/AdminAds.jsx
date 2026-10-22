@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { FaPlus, FaTrash, FaEye, FaEyeSlash, FaChartBar } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaEye, FaEyeSlash } from 'react-icons/fa';
 import toast from 'react-hot-toast';
-import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, increment } from 'firebase/firestore';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+// USE YOUR EXISTING CONFIG FILE:
+import { db } from '../../firebase/config';
 
 const AdminAds = () => {
   const [ads, setAds] = useState([]);
@@ -19,14 +21,13 @@ const AdminAds = () => {
     bgColor: 'from-sky-900 to-navy-900'
   });
 
-  const db = getFirestore();
+  // Note: We remove `const db = getFirestore();` because we imported `db` above!
 
   const fetchAds = async () => {
     try {
       setLoading(true);
       const snapshot = await getDocs(collection(db, 'ads'));
       const adsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      // Sort by newest first
       adsData.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
       setAds(adsData);
     } catch (err) {
