@@ -4,9 +4,36 @@ import { FaFilePdf, FaDownload, FaCheck, FaTimes, FaUpload, FaGlobe } from 'reac
 import toast from 'react-hot-toast';
 import jsPDF from 'jspdf';
 import { adminService } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
+
+// ---------- Brand palette (matches tailwind.config.js) ----------
+const NAVY = [10, 20, 40];       // #0a1428
+const NAVY_DEEP = [18, 32, 64];  // #122040
+const SKY = [56, 198, 255];      // #38c6ff
+const GOLD = [212, 175, 55];     // #d4af37
+const WHITE = [255, 255, 255];
+const LIGHT_SKY = [239, 249, 255]; // #eff9ff
+
+// ---------- Asset loader (logo) ----------
+const loadImageAsDataUrl = (src) =>
+  new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      resolve({ dataUrl: canvas.toDataURL('image/png'), width: img.width, height: img.height });
+    };
+    img.onerror = reject;
+    img.src = src;
+  });
 
 const SchoolDetail = () => {
   const { id } = useParams();
+  const { user } = useAuth();
   const [school, setSchool] = useState(null);
   const [subdomain, setSubdomain] = useState('');
   const [apkFile, setApkFile] = useState('');
@@ -31,56 +58,209 @@ const SchoolDetail = () => {
 
   useEffect(() => {
     load();
-    
   }, [id]);
 
-  const exportPdf = () => {
+  // ---------- Branded PDF export ----------
+  const exportPdf = async () => {
     if (!school) return;
     try {
-      const doc = new jsPDF();
-      let y = 20;
-      const title = `School Application — ${school.identity?.name || school.schoolName || 'Unknown'}`;
-      doc.setFontSize(18);
-      doc.text(title, 14, y);
-      y += 10;
-      doc.setFontSize(11);
+      const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+      const margin = 15;
 
-      const rows = [
-        ['Status', school.status],
-        ['Admin', school.adminName],
-        ['Email', school.email],
-        ['Phone', school.phone],
-        ['Students Range', school.schoolSize],
-        ['Level', school.academic?.level],
+      // ===== HEADER BAND =====
+      doc.setFillColor(...NAVY_DEEP);
+      doc.rect(0, 0, pageW, 28, 'F');
+
+      // Sky-blue accent line under header
+      doc.setFillColor(...SKY);
+      doc.rect(0, 28, pageW, 1.2, 'F');
+
+      // Platform logo (top-left in the header)
+      try {
+        const { dataUrl, width, height } = await loadImageAsDataUrl('/logo192.png');
+        const logoSize = 16;
+        const ratio = width / height;
+        const logoW = logoSize * ratio;
+        doc.addImage(dataUrl, 'PNG', margin, 6, logoW, logoSize);
+      } catch {
+        /* logo failed — continue without it */
+      }
+
+      // Platform name + contact (top-right, white on navy)
+      doc.setTextColor(...WHITE);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(14);
+      doc.text('Edupriva Technologies', pageW - margin, 11, { align: 'right' });
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(200, 220, 255);
+      doc.text('info.edupriva@gmail.com  ·  +254 757 357 307', pageW - margin, 16, { align: 'right' });
+      doc.text('www.edupriva.top', pageW - margin, 20, { align: 'right' });
+
+      // ===== TITLE =====
+      let y = 42;
+      doc.setTextColor(...NAVY);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(18);
+      doc.text('School Application Report', margin, y);
+      y += 6;
+
+      doc.setFontSize(12);
+      doc.setTextColor(...SKY);
+      doc.text(school.identity?.name || school.schoolName || 'Unnamed School', margin, y);
+      y += 8;
+
+      // Sky accent rule
+      doc.setDrawColor(...SKY);
+      doc.setLineWidth(0.6);
+      doc.line(margin, y, pageW - margin, y);
+      y += 8;
+
+      // ===== META BAR (generated date + admin name) =====
+      const now = new Date();
+      const generatedAt = now.toLocaleString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      });
+      const adminName = user?.name || user?.email || 'Super Admin';
+
+      doc.setFillColor(...LIGHT_SKY);
+      doc.roundedRect(margin, y, pageW - margin * 2, 12, 2, 2, 'F');
+      doc.setTextColor(...NAVY);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.text('Generated:', margin + 3, y + 4.5);
+      doc.text('By:', margin + 3, y + 9);
+
+      doc.setFont('helvetica', 'normal');
+      doc.text(generatedAt, margin + 25, y + 4.5);
+      doc.text(`${adminName} (Super Admin)`, margin + 25, y + 9);
+
+      y += 20;
+
+      // ===== SCHOOL INFO GRID =====
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(...NAVY);
+      doc.text('School Information', margin, y);
+      y += 5;
+
+      const infoRows = [
+        ['Status', school.status || '—'],
+        ['Admin Name', school.adminName || '—'],
+        ['Email', school.email || '—'],
+        ['Phone', school.phone || '—'],
+        ['Students Range', school.schoolSize || '—'],
+        ['Level', school.academic?.level || '—'],
         ['Motto', school.identity?.motto || '—'],
         ['P.O. Box', school.identity?.pobox || '—'],
         ['Physical Address', school.identity?.address || '—'],
         ['Website', school.identity?.website || '—'],
         ['Subdomain', school.subdomain ? `${school.subdomain}.edupriva.top` : 'Not assigned'],
-        ['Plan', school.subscription?.plan || '—'],
+        ['Subscription Plan', school.subscription?.plan || '—'],
         ['Classes', (school.academic?.classes || []).map((c) => c.name).join(', ') || '—'],
         ['Streams', (school.academic?.streamNames || []).join(', ') || '—'],
         ['APK File', school.app?.apkFile || 'Not uploaded'],
       ];
 
-      rows.forEach(([k, v]) => {
-        doc.text(`${k}:`, 14, y);
-        doc.text(String(v || '—'), 60, y, { maxWidth: 130 });
-        y += 8;
+      doc.setFontSize(9);
+      const rowH = 7;
+      const colLabelW = 45;
+      infoRows.forEach(([k, v], idx) => {
+        // Alternating row background
+        if (idx % 2 === 0) {
+          doc.setFillColor(248, 251, 255);
+          doc.rect(margin, y - 4, pageW - margin * 2, rowH, 'F');
+        }
+        doc.setTextColor(...NAVY_DEEP);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${k}`, margin + 2, y);
+
+        doc.setTextColor(40, 50, 70);
+        doc.setFont('helvetica', 'normal');
+        doc.text(String(v || '—'), margin + colLabelW, y, {
+          maxWidth: pageW - margin - colLabelW - 2,
+        });
+        y += rowH;
       });
 
-      if (school.identity?.logo && school.identity.logo.startsWith('data:image')) {
+      y += 4;
+
+      // ===== LOGO PANEL =====
+      if (school.identity?.logo) {
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor(...NAVY);
+        doc.text('School Logo', margin, y);
+        y += 4;
+
         try {
-          doc.addImage(school.identity.logo, 'PNG', 150, 20, 40, 40);
+          let logoData = school.identity.logo;
+          // If it's a remote URL, fetch and convert to base64 first
+          if (!logoData.startsWith('data:')) {
+            const res = await fetch(logoData);
+            const blob = await res.blob();
+            logoData = await new Promise((resolve) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result);
+              reader.readAsDataURL(blob);
+            });
+          }
+          // Bordered frame
+          doc.setDrawColor(...SKY);
+          doc.setLineWidth(0.4);
+          doc.rect(margin, y, 34, 34);
+          doc.addImage(logoData, 'PNG', margin + 2, y + 2, 30, 30);
+          y += 40;
         } catch {
-          /* logo not addable — skip */
+          doc.setFontSize(9);
+          doc.setTextColor(150, 150, 150);
+          doc.text('(Logo could not be embedded)', margin, y);
+          y += 8;
         }
       }
 
-      const filename = `${(school.identity?.name || school.schoolName || 'school')
-        .replace(/\s+/g, '_')}_application.pdf`;
-      doc.save(filename);
+      // ===== FOOTER =====
+      const footerY = pageH - 16;
+      doc.setFillColor(...NAVY_DEEP);
+      doc.rect(0, footerY, pageW, 16, 'F');
+      doc.setFillColor(...SKY);
+      doc.rect(0, footerY, pageW, 0.8, 'F');
+
+      doc.setTextColor(...WHITE);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      const year = now.getFullYear();
+      doc.text(
+        `© ${year} mrak. All rights reserved.`,
+        margin,
+        footerY + 6
+      );
+      doc.text(
+        'System designed and maintained by Edupriva Technologies',
+        margin,
+        footerY + 11
+      );
+
+      doc.setTextColor(...SKY);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Edupriva', pageW - margin, footerY + 6, { align: 'right' });
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(200, 220, 255);
+      doc.text('info.edupriva@gmail.com', pageW - margin, footerY + 11, { align: 'right' });
+
+      // ===== SAVE =====
+      const safe = (school.identity?.name || school.schoolName || 'school').replace(/\s+/g, '_');
+      doc.save(`${safe}_application_${year}.pdf`);
     } catch (e) {
+      console.error('PDF export error:', e);
       toast.error('PDF export failed');
     }
   };
@@ -94,7 +274,6 @@ const SchoolDetail = () => {
     )}_logo.png`;
 
     try {
-      // For remote URLs (Cloudinary), fetch and blob-download so the file actually saves
       if (!logoUrl.startsWith('data:')) {
         const res = await fetch(logoUrl);
         const blob = await res.blob();
@@ -111,7 +290,6 @@ const SchoolDetail = () => {
         a.click();
       }
     } catch {
-      // Fallback — open in new tab
       window.open(logoUrl, '_blank');
     }
   };
