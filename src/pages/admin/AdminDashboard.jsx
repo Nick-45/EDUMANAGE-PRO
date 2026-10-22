@@ -79,7 +79,7 @@ const AdminDashboard = () => {
             <h1 className="text-3xl font-display font-bold text-white">Super Admin</h1>
             <p className="text-sky-100/70">Manage school applications and app delivery</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <button
               onClick={() => load(filter)}
               disabled={loading}
@@ -89,28 +89,12 @@ const AdminDashboard = () => {
               <FaSync className={`mr-2 ${loading ? 'animate-spin' : ''}`} />
               Refresh
             </button>
-             
-  <Link
-    to="/admin/ads"
-    className="px-4 py-2 border border-sky-500/30 text-sky-300 rounded-lg hover:bg-sky-500/10"
-  >
-    Manage Ads
-  </Link>
-
-  <Link
-    to="/admin/users"
-    className="px-4 py-2 border border-sky-500/30 text-sky-300 rounded-lg hover:bg-sky-500/10"
-  >
-    All Users
-  </Link>
-  <Link
-    to="/admin/legal"
-    className="px-4 py-2 border border-sky-500/30 text-sky-300 rounded-lg hover:bg-sky-500/10"
-  >
-    Legal Pages
-  </Link>
-</div>
-
+            <Link
+              to="/admin/ads"
+              className="px-4 py-2 border border-sky-500/30 text-sky-300 rounded-lg hover:bg-sky-500/10"
+            >
+              Manage Ads
+            </Link>
             <Link
               to="/admin/users"
               className="px-4 py-2 border border-sky-500/30 text-sky-300 rounded-lg hover:bg-sky-500/10"
