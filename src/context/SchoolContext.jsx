@@ -17,74 +17,70 @@ export const SchoolProvider = ({ children }) => {
   const { user, isAuthenticated } = useAuth();
   const [school, setSchool] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [subscription, setSubscription] = useState(null);
 
   useEffect(() => {
-    if (isAuthenticated && user?.schoolId) {
+    if (isAuthenticated && user) {
       loadSchool();
-      loadSubscription();
     } else {
+      setSchool(null);
       setLoading(false);
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user?.schoolId]);
 
   const loadSchool = async () => {
     try {
-      const schoolData = await schoolService.getSchool(user.schoolId);
+      const schoolData = await schoolService.getMySchool();
       setSchool(schoolData);
     } catch (error) {
-      console.error('Failed to load school:', error);
+      if (error?.status !== 404) {
+        console.error('Failed to load school:', error);
+      }
+      setSchool(null);
     } finally {
       setLoading(false);
     }
   };
 
-  const loadSubscription = async () => {
-    try {
-      const subData = await schoolService.getSubscription(user.schoolId);
-      setSubscription(subData);
-    } catch (error) {
-      console.error('Failed to load subscription:', error);
-    }
-  };
+  const refresh = () => loadSchool();
 
   const updateSchool = async (data) => {
     try {
-      const updated = await schoolService.updateSchool(school.id, data);
-      setSchool(updated);
-      toast.success('School updated successfully');
-      return updated;
+      await schoolService.submitApplication(data);
+      await loadSchool();
+      toast.success('School information saved');
     } catch (error) {
-      toast.error(error.message || 'Failed to update school');
+      toast.error(error.message || 'Failed to save school');
       throw error;
     }
   };
 
-  // -----------------------
-  // UPLOAD LOGO (Base64)
-  // -----------------------
+  const submitApplication = updateSchool;
+
   const uploadLogo = async (file) => {
-  if (!file) throw new Error("No file provided");
+    if (!file) throw new Error('No file provided');
 
-  // Convert File to Base64
-  const base64Image = await new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file); // File object required
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = (error) => reject(error);
-  });
+    const base64Image = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
 
-  // Send base64 image to backend
-  const updated = await schoolService.uploadLogo(school.id, { image: base64Image });
-  setSchool(updated);
-  toast.success('Logo uploaded successfully');
-  return updated;
-};
+    try {
+      const result = await schoolService.uploadLogo(base64Image);
+      await loadSchool();
+      toast.success('Logo uploaded successfully');
+      return result;
+    } catch (error) {
+      toast.error(error.message || 'Failed to upload logo');
+      throw error;
+    }
+  };
 
   const subscribe = async (planId, paymentDetails) => {
     try {
-      const result = await schoolService.subscribe(school.id, planId, paymentDetails);
-      setSubscription(result.subscription);
+      const result = await schoolService.subscribe(planId, paymentDetails);
+      await loadSchool();
       toast.success('Subscription activated successfully');
       return result;
     } catch (error) {
@@ -95,8 +91,8 @@ export const SchoolProvider = ({ children }) => {
 
   const cancelSubscription = async () => {
     try {
-      await schoolService.cancelSubscription(school.id);
-      setSubscription(null);
+      await schoolService.cancelSubscription();
+      await loadSchool();
       toast.success('Subscription cancelled');
     } catch (error) {
       toast.error(error.message || 'Failed to cancel subscription');
@@ -104,15 +100,24 @@ export const SchoolProvider = ({ children }) => {
     }
   };
 
+  const subscription = school?.subscription || null;
+  const status = school?.status || null;
+
   const value = {
     school,
     subscription,
     loading,
+    refresh,
     updateSchool,
+    submitApplication,
     uploadLogo,
     subscribe,
     cancelSubscription,
-    isActive: subscription?.status === 'active',
+    status,
+    isActive: status === 'active',
+    isPending: ['pending', 'in_review', 'app_building', 'app_ready'].includes(status),
+    isRejected: status === 'rejected',
+    hasApp: !!school?.app?.apkFile,
   };
 
   return <SchoolContext.Provider value={value}>{children}</SchoolContext.Provider>;
