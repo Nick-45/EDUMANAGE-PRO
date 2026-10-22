@@ -28,7 +28,7 @@ const AdSection = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // Note: This is the ID you will get from your Google AdSense dashboard
-  const ADSENSE_CLIENT_ID = 'ca-pub-XXXXXXXXXXXXXXXX'; 
+  const ADSENSE_CLIENT_ID = 'ca-pub-3493778872805373'; 
   const ADSENSE_SLOT_ID = 'XXXXXXXXXX'; 
 
   useEffect(() => {
