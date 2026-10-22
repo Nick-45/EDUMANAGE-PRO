@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || '/api';
+const API_URL = process.env.REACT_APP_API_URL || '/.netlify/functions';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -24,7 +24,16 @@ api.interceptors.response.use(
       localStorage.removeItem('token');
       window.location.href = '/';
     }
-    throw error.response?.data || error.message;
+    // Always throw a real Error with a usable message
+    const message =
+      error.response?.data?.message ||
+      (typeof error.response?.data === 'string' ? error.response.data : null) ||
+      error.message ||
+      'Request failed';
+    const err = new Error(message);
+    err.status = error.response?.status;
+    err.data = error.response?.data;
+    throw err;
   }
 );
 
@@ -53,18 +62,12 @@ export const adminService = {
     api.patch('/admin-schools-subdomain', { id, subdomain }),
   setApk: (id, payload) => api.patch('/admin-schools-apk', { id, ...payload }),
   listUsers: () => api.get('/admin-users-list'),
-  getLegal: () => api.get('/legal-get'),
-  saveLegal: (terms, privacy) => api.put('/legal-put', { terms, privacy }),
 };
 
-// --- Legal (public) ---
+// --- Legal (public + admin) ---
 export const legalService = {
   get: () => api.get('/legal-get'),
+  save: (terms, privacy) => api.put('/legal-put', { terms, privacy }),
 };
-// --- Payments ---
-export const paymentService = {
-  createPayment: (data) => api.post('/payments', data),
-  verifyPayment: (reference) =>
-    api.get('/payments/verify', { params: { reference } }),
-};
+
 export default api;
