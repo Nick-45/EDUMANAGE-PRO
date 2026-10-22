@@ -6,15 +6,15 @@ import jsPDF from 'jspdf';
 import { adminService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 
-// ---------- Brand palette (matches tailwind.config.js) ----------
-const NAVY = [10, 20, 40];       // #0a1428
-const NAVY_DEEP = [18, 32, 64];  // #122040
-const SKY = [56, 198, 255];      // #38c6ff
-const GOLD = [212, 175, 55];     // #d4af37
+// ---------- Brand palette ----------
+const NAVY = [10, 20, 40];
+const NAVY_DEEP = [18, 32, 64];
+const SKY = [56, 198, 255];
+const GOLD = [212, 175, 55];
 const WHITE = [255, 255, 255];
-const LIGHT_SKY = [239, 249, 255]; // #eff9ff
+const LIGHT_SKY = [239, 249, 255];
 
-// ---------- Asset loader (logo) ----------
+// ---------- Image loaders ----------
 const loadImageAsDataUrl = (src) =>
   new Promise((resolve, reject) => {
     const img = new Image();
@@ -23,12 +23,27 @@ const loadImageAsDataUrl = (src) =>
       const canvas = document.createElement('canvas');
       canvas.width = img.width;
       canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0);
+      canvas.getContext('2d').drawImage(img, 0, 0);
       resolve({ dataUrl: canvas.toDataURL('image/png'), width: img.width, height: img.height });
     };
     img.onerror = reject;
     img.src = src;
+  });
+
+// Fetches a remote URL and returns { dataUrl, width, height } via canvas
+const loadRemoteImageAsDataUrl = (url) =>
+  new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      canvas.getContext('2d').drawImage(img, 0, 0);
+      resolve({ dataUrl: canvas.toDataURL('image/png'), width: img.width, height: img.height });
+    };
+    img.onerror = reject;
+    img.src = url;
   });
 
 const SchoolDetail = () => {
@@ -70,38 +85,97 @@ const SchoolDetail = () => {
       const margin = 15;
 
       // ===== HEADER BAND =====
+      const headerH = 30;
       doc.setFillColor(...NAVY_DEEP);
-      doc.rect(0, 0, pageW, 28, 'F');
+      doc.rect(0, 0, pageW, headerH, 'F');
 
-      // Sky-blue accent line under header
       doc.setFillColor(...SKY);
-      doc.rect(0, 28, pageW, 1.2, 'F');
+      doc.rect(0, headerH, pageW, 1.2, 'F');
 
-      // Platform logo (top-left in the header)
+      // ----- LEFT: Platform logo -----
+      const logoSize = 18;
+      const logoY = (headerH - logoSize) / 2;
       try {
         const { dataUrl, width, height } = await loadImageAsDataUrl('/logo192.png');
-        const logoSize = 16;
         const ratio = width / height;
         const logoW = logoSize * ratio;
-        doc.addImage(dataUrl, 'PNG', margin, 6, logoW, logoSize);
+        doc.addImage(dataUrl, 'PNG', margin, logoY, logoW, logoSize);
       } catch {
-        /* logo failed — continue without it */
+        /* skip */
       }
 
-      // Platform name + contact (top-right, white on navy)
+      // ----- CENTER: Platform details -----
+      const centerX = pageW / 2;
       doc.setTextColor(...WHITE);
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(14);
-      doc.text('Edupriva Technologies', pageW - margin, 11, { align: 'right' });
+      doc.text('Edupriva Technologies', centerX, 12, { align: 'center' });
 
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
       doc.setTextColor(200, 220, 255);
-      doc.text('info.edupriva@gmail.com  ·  +254 757 357 307', pageW - margin, 16, { align: 'right' });
-      doc.text('www.edupriva.top', pageW - margin, 20, { align: 'right' });
+      doc.text('info.edupriva@gmail.com  ·  +254 757 357 307', centerX, 18, { align: 'center' });
+      doc.text('www.edupriva.top', centerX, 23, { align: 'center' });
+
+      // ----- RIGHT: School logo -----
+      const schoolLogoSize = 18;
+      const schoolLogoX = pageW - margin - schoolLogoSize;
+      const schoolLogoY = (headerH - schoolLogoSize) / 2;
+      let schoolLogoEmbedded = false;
+
+      if (school.identity?.logo) {
+        try {
+          // If already a data URL, use directly; else fetch from Cloudinary
+          let logoData;
+          if (school.identity.logo.startsWith('data:')) {
+            logoData = { dataUrl: school.identity.logo, width: 1, height: 1 };
+          } else {
+            logoData = await loadRemoteImageAsDataUrl(school.identity.logo);
+          }
+
+          // Draw a subtle white rounded square behind the logo so it stands out on navy
+          doc.setFillColor(...WHITE);
+          doc.roundedRect(schoolLogoX - 1, schoolLogoY - 1, schoolLogoSize + 2, schoolLogoSize + 2, 2, 2, 'F');
+
+          // Fit the school logo inside the box while preserving aspect ratio
+          const boxInner = schoolLogoSize - 2;
+          let drawW = boxInner;
+          let drawH = boxInner;
+          let offsetX = schoolLogoX;
+          let offsetY = schoolLogoY;
+
+          if (logoData.width && logoData.height) {
+            const ratio = logoData.width / logoData.height;
+            if (ratio > 1) {
+              drawH = boxInner / ratio;
+              offsetY = schoolLogoY + (boxInner - drawH) / 2;
+            } else {
+              drawW = boxInner * ratio;
+              offsetX = schoolLogoX + (boxInner - drawW) / 2;
+            }
+          }
+
+          doc.addImage(logoData.dataUrl, 'PNG', offsetX, offsetY, drawW, drawH);
+          schoolLogoEmbedded = true;
+        } catch {
+          /* skip */
+        }
+      }
+
+      // If no school logo, draw a placeholder label on the right
+      if (!schoolLogoEmbedded) {
+        doc.setDrawColor(...SKY);
+        doc.setLineWidth(0.4);
+        doc.roundedRect(schoolLogoX, schoolLogoY, schoolLogoSize, schoolLogoSize, 2, 2, 'S');
+        doc.setFontSize(7);
+        doc.setTextColor(200, 220, 255);
+        doc.text('No Logo', schoolLogoX + schoolLogoSize / 2, schoolLogoY + schoolLogoSize / 2 + 1, {
+          align: 'center',
+        });
+      }
 
       // ===== TITLE =====
-      let y = 42;
+      let y = headerH + 14;
       doc.setTextColor(...NAVY);
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(18);
@@ -113,13 +187,12 @@ const SchoolDetail = () => {
       doc.text(school.identity?.name || school.schoolName || 'Unnamed School', margin, y);
       y += 8;
 
-      // Sky accent rule
       doc.setDrawColor(...SKY);
       doc.setLineWidth(0.6);
       doc.line(margin, y, pageW - margin, y);
       y += 8;
 
-      // ===== META BAR (generated date + admin name) =====
+      // ===== META BAR =====
       const now = new Date();
       const generatedAt = now.toLocaleString('en-GB', {
         day: '2-digit',
@@ -138,14 +211,13 @@ const SchoolDetail = () => {
       doc.setFontSize(9);
       doc.text('Generated:', margin + 3, y + 4.5);
       doc.text('By:', margin + 3, y + 9);
-
       doc.setFont('helvetica', 'normal');
       doc.text(generatedAt, margin + 25, y + 4.5);
       doc.text(`${adminName} (Super Admin)`, margin + 25, y + 9);
 
       y += 20;
 
-      // ===== SCHOOL INFO GRID =====
+      // ===== SCHOOL INFO TABLE =====
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(11);
       doc.setTextColor(...NAVY);
@@ -174,7 +246,6 @@ const SchoolDetail = () => {
       const rowH = 7;
       const colLabelW = 45;
       infoRows.forEach(([k, v], idx) => {
-        // Alternating row background
         if (idx % 2 === 0) {
           doc.setFillColor(248, 251, 255);
           doc.rect(margin, y - 4, pageW - margin * 2, rowH, 'F');
@@ -191,42 +262,6 @@ const SchoolDetail = () => {
         y += rowH;
       });
 
-      y += 4;
-
-      // ===== LOGO PANEL =====
-      if (school.identity?.logo) {
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(11);
-        doc.setTextColor(...NAVY);
-        doc.text('School Logo', margin, y);
-        y += 4;
-
-        try {
-          let logoData = school.identity.logo;
-          // If it's a remote URL, fetch and convert to base64 first
-          if (!logoData.startsWith('data:')) {
-            const res = await fetch(logoData);
-            const blob = await res.blob();
-            logoData = await new Promise((resolve) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve(reader.result);
-              reader.readAsDataURL(blob);
-            });
-          }
-          // Bordered frame
-          doc.setDrawColor(...SKY);
-          doc.setLineWidth(0.4);
-          doc.rect(margin, y, 34, 34);
-          doc.addImage(logoData, 'PNG', margin + 2, y + 2, 30, 30);
-          y += 40;
-        } catch {
-          doc.setFontSize(9);
-          doc.setTextColor(150, 150, 150);
-          doc.text('(Logo could not be embedded)', margin, y);
-          y += 8;
-        }
-      }
-
       // ===== FOOTER =====
       const footerY = pageH - 16;
       doc.setFillColor(...NAVY_DEEP);
@@ -238,16 +273,8 @@ const SchoolDetail = () => {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
       const year = now.getFullYear();
-      doc.text(
-        `© ${year} mrak. All rights reserved.`,
-        margin,
-        footerY + 6
-      );
-      doc.text(
-        'System designed and maintained by Edupriva Technologies',
-        margin,
-        footerY + 11
-      );
+      doc.text(`© ${year} mrak. All rights reserved.`, margin, footerY + 6);
+      doc.text('System designed and maintained by Edupriva Technologies', margin, footerY + 11);
 
       doc.setTextColor(...SKY);
       doc.setFont('helvetica', 'bold');
@@ -256,7 +283,6 @@ const SchoolDetail = () => {
       doc.setTextColor(200, 220, 255);
       doc.text('info.edupriva@gmail.com', pageW - margin, footerY + 11, { align: 'right' });
 
-      // ===== SAVE =====
       const safe = (school.identity?.name || school.schoolName || 'school').replace(/\s+/g, '_');
       doc.save(`${safe}_application_${year}.pdf`);
     } catch (e) {
