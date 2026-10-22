@@ -61,5 +61,10 @@ export const adminService = {
 export const legalService = {
   get: () => api.get('/legal-get'),
 };
-
+// --- Payments ---
+export const paymentService = {
+  createPayment: (data) => api.post('/payments', data),
+  verifyPayment: (reference) =>
+    api.get('/payments/verify', { params: { reference } }),
+};
 export default api;
