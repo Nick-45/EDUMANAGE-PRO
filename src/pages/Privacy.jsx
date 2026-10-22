@@ -1,22 +1,41 @@
-// src/pages/Privacy.jsx 
 import React, { useEffect, useState } from 'react';
-import api from '../services/api';
+import { Helmet } from 'react-helmet-async';
 import ReactMarkdown from 'react-markdown';
+import { legalService } from '../services/api';
 
-const Terms = () => {
+const Privacy = () => {
   const [content, setContent] = useState('');
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    api.get('/legal/terms').then(({ data }) => setContent(data.content || ''));
+    legalService
+      .get()
+      .then((data) => setContent(data?.privacy || ''))
+      .catch(() => setContent(''))
+      .finally(() => setLoading(false));
   }, []);
+
   return (
     <div className="min-h-screen bg-navy-gradient pt-24 pb-12">
-      <div className="container mx-auto px-4 max-w-3xl prose prose-invert">
-        <h1 className="text-3xl font-display font-bold text-white mb-6">Terms of Service</h1>
-        <div className="text-sky-100/80 leading-relaxed">
-          <ReactMarkdown>{content || '_Privacy have not been published yet._'}</ReactMarkdown>
+      <Helmet>
+        <title>Privacy Policy — EduPriva</title>
+      </Helmet>
+      <div className="container mx-auto px-4 max-w-3xl">
+        <h1 className="text-3xl font-display font-bold text-white mb-6">Privacy Policy</h1>
+        <div className="text-sky-100/80 leading-relaxed prose prose-invert">
+          {loading ? (
+            <p className="text-sky-200/50">Loading…</p>
+          ) : content ? (
+            <ReactMarkdown>{content}</ReactMarkdown>
+          ) : (
+            <p className="text-sky-200/50">
+              Our Privacy Policy has not been published yet. Please check back soon.
+            </p>
+          )}
         </div>
       </div>
     </div>
   );
 };
+
 export default Privacy;
