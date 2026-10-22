@@ -29,7 +29,7 @@ const AdSection = () => {
 
   // Note: This is the ID you will get from your Google AdSense dashboard
   const ADSENSE_CLIENT_ID = 'ca-pub-3493778872805373'; 
-  const ADSENSE_SLOT_ID = 'XXXXXXXXXX'; 
+  const ADSENSE_SLOT_ID = '7352622150'; 
 
   useEffect(() => {
     // 2. Load Google AdSense script dynamically
