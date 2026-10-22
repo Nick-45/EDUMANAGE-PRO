@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { FaRocket, FaPlay, FaCheckCircle } from 'react-icons/fa';
+import { FaRocket, FaPlay, FaCheckCircle, FaGraduationCap, FaChartLine, FaMobileAlt } from 'react-icons/fa';
 
 const Hero = () => {
   const containerVariants = {
@@ -9,7 +9,7 @@ const Hero = () => {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.2,
+        staggerChildren: 0.15,
       },
     },
   };
@@ -20,9 +20,15 @@ const Hero = () => {
   };
 
   return (
-    <section className="min-h-screen flex items-center pt-20 pb-12 bg-gradient-to-br from-primary-50 via-white to-white">
-      <div className="container mx-auto px-4">
+    <section className="min-h-screen flex items-center pt-24 pb-12 bg-navy-gradient relative overflow-hidden">
+      {/* Ambient background glows */}
+      <div className="pointer-events-none absolute -top-32 -left-32 w-96 h-96 bg-sky-500/20 rounded-full blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-32 -right-32 w-96 h-96 bg-gold-500/10 rounded-full blur-3xl" />
+
+      <div className="container mx-auto px-4 relative z-10">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
+          
+          {/* Left Text Section */}
           <motion.div
             variants={containerVariants}
             initial="hidden"
@@ -31,18 +37,18 @@ const Hero = () => {
           >
             <motion.div
               variants={itemVariants}
-              className="inline-block px-4 py-2 bg-primary-100 text-primary-700 rounded-full text-sm font-semibold mb-6"
+              className="inline-block px-4 py-2 bg-sky-500/10 border border-sky-500/30 text-sky-300 rounded-full text-sm font-semibold mb-6"
             >
-              <FaRocket className="inline mr-2" />
-              SaaS School Management Platform
+              <FaRocket className="inline mr-2 text-gold-400" />
+              Next-Gen School Management
             </motion.div>
 
             <motion.h1
               variants={itemVariants}
-              className="text-5xl md:text-6xl font-display font-bold mb-6"
+              className="text-5xl md:text-6xl font-display font-bold mb-6 text-white leading-tight"
             >
               Transform Your School with{' '}
-              <span className="bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent">
+              <span className="text-gold-gradient">
                 Cloud-Based
               </span>{' '}
               Management
@@ -50,26 +56,27 @@ const Hero = () => {
 
             <motion.p
               variants={itemVariants}
-              className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto lg:mx-0"
+              className="text-xl text-sky-100/70 mb-8 max-w-2xl mx-auto lg:mx-0"
             >
-              Complete school management solution , Powering modern education.
+              The complete, custom-branded platform for modern schools. 
+              Manage students, fees, results, and communication seamlessly.
             </motion.p>
 
             <motion.div
               variants={itemVariants}
-              className="flex flex-wrap gap-4 justify-center lg:justify-start mb-8"
+              className="flex flex-wrap gap-4 justify-center lg:justify-start mb-10"
             >
-              <div className="flex items-center text-gray-700">
-                <FaCheckCircle className="text-primary-600 mr-2" />
-                <span>Multi-school</span>
+              <div className="flex items-center text-sky-100/90 bg-navy-900/60 border border-sky-500/20 px-4 py-2 rounded-lg">
+                <FaGraduationCap className="text-gold-400 mr-2" />
+                <span className="text-sm font-medium">Student Records</span>
               </div>
-              <div className="flex items-center text-gray-700">
-                <FaCheckCircle className="text-primary-600 mr-2" />
-                <span>Custom Branding</span>
+              <div className="flex items-center text-sky-100/90 bg-navy-900/60 border border-sky-500/20 px-4 py-2 rounded-lg">
+                <FaChartLine className="text-gold-400 mr-2" />
+                <span className="text-sm font-medium">Fee Management</span>
               </div>
-              <div className="flex items-center text-gray-700">
-                <FaCheckCircle className="text-primary-600 mr-2" />
-                <span>Mobile Apps</span>
+              <div className="flex items-center text-sky-100/90 bg-navy-900/60 border border-sky-500/20 px-4 py-2 rounded-lg">
+                <FaMobileAlt className="text-gold-400 mr-2" />
+                <span className="text-sm font-medium">Custom Apps</span>
               </div>
             </motion.div>
 
@@ -79,57 +86,77 @@ const Hero = () => {
             >
               <Link
                 to="/signup"
-                className="px-8 py-4 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg font-semibold hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300"
+                className="px-8 py-4 bg-gold-gradient text-navy-950 rounded-xl font-bold shadow-gold-glow hover:shadow-gold-glow-lg bg-[length:200%_100%] hover:animate-shimmer transform hover:-translate-y-1 transition-all duration-300 flex items-center"
               >
                 <FaRocket className="inline mr-2" />
-                Start Free Trial
+                Start Your Application
               </Link>
               <button
                 onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
-                className="px-8 py-4 border-2 border-primary-600 text-primary-600 rounded-lg font-semibold hover:bg-primary-50 transition-all duration-300"
+                className="px-8 py-4 border-2 border-sky-400/50 text-sky-300 rounded-xl font-semibold hover:bg-sky-500/10 hover:border-sky-400 transition-all duration-300 flex items-center"
               >
                 <FaPlay className="inline mr-2" />
-                Live Demo
+                View Live Demo
               </button>
             </motion.div>
           </motion.div>
 
+          {/* Right Image / Mockup Section */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
-            className="flex-1 relative"
+            className="flex-1 relative w-full max-w-lg mx-auto lg:mx-0"
           >
-            <div className="relative w-full max-w-lg mx-auto">
-              {/* Dashboard Preview */}
-              <div className="bg-white rounded-2xl shadow-2xl overflow-hidden animate-float">
-                <div className="h-16 bg-gradient-to-r from-primary-600 to-primary-700 flex items-center px-4">
-                  <div className="w-8 h-8 bg-white/20 rounded-lg mr-3"></div>
-                  <div className="flex-1 h-4 bg-white/20 rounded-full"></div>
-                  <div className="w-8 h-8 bg-white/20 rounded-full"></div>
-                </div>
-                <div className="p-6">
-                  <div className="grid grid-cols-3 gap-4">
-                    {[1, 2, 3].map((i) => (
-                      <div
-                        key={i}
-                        className="h-20 bg-gray-100 rounded-lg animate-pulse-slow"
-                        style={{ animationDelay: `${i * 0.2}s` }}
-                      ></div>
-                    ))}
-                  </div>
-                </div>
+            {/* Main Dashboard Mockup */}
+            <div className="bg-navy-900/80 backdrop-blur-xl border border-sky-500/30 rounded-2xl shadow-2xl overflow-hidden animate-float">
+              {/* Mockup Header */}
+              <div className="h-16 bg-navy-950 border-b border-sky-500/20 flex items-center px-4">
+                <div className="w-8 h-8 bg-gold-gradient rounded-lg mr-3 shadow-gold-glow"></div>
+                <div className="flex-1 h-3 bg-sky-500/20 rounded-full"></div>
+                <div className="w-8 h-8 bg-sky-500/20 rounded-full ml-4"></div>
               </div>
-
-              {/* Floating Icons */}
-              <div className="absolute -top-10 -right-10 w-16 h-16 bg-primary-600 rounded-2xl shadow-lg flex items-center justify-center text-white text-2xl animate-float">
-                <FaRocket />
-              </div>
-              <div className="absolute -bottom-10 -left-10 w-16 h-16 bg-yellow-400 rounded-2xl shadow-lg flex items-center justify-center text-gray-800 text-2xl animate-float" style={{ animationDelay: '0.5s' }}>
-                <FaPlay />
+              
+              {/* Mockup Body */}
+              <div className="p-6">
+                {/* Chart Area */}
+                <div className="flex gap-4 mb-6">
+                   <div className="w-2/3 h-32 bg-navy-950 border border-sky-500/20 rounded-lg p-3 flex items-end justify-between gap-2">
+                      <div className="w-1/6 bg-sky-500/40 rounded-t h-[40%]"></div>
+                      <div className="w-1/6 bg-gold-500/60 rounded-t h-[70%]"></div>
+                      <div className="w-1/6 bg-sky-500/40 rounded-t h-[50%]"></div>
+                      <div className="w-1/6 bg-gold-500/80 rounded-t h-[90%] shadow-gold-glow"></div>
+                      <div className="w-1/6 bg-sky-500/40 rounded-t h-[60%]"></div>
+                   </div>
+                   <div className="w-1/3 h-32 bg-navy-950 border border-sky-500/20 rounded-lg p-3 flex flex-col justify-center items-center">
+                      <div className="w-12 h-12 rounded-full border-4 border-gold-500 border-t-transparent animate-spin mb-2"></div>
+                      <div className="h-2 w-12 bg-sky-500/20 rounded-full"></div>
+                   </div>
+                </div>
+                {/* List Area */}
+                <div className="space-y-3">
+                   {[1, 2, 3].map((i) => (
+                     <div key={i} className="flex items-center gap-3">
+                       <div className="w-8 h-8 rounded-full bg-sky-500/10 border border-sky-500/30"></div>
+                       <div className="flex-1 space-y-2">
+                         <div className="h-2 bg-sky-500/20 rounded-full w-3/4"></div>
+                         <div className="h-2 bg-sky-500/10 rounded-full w-1/2"></div>
+                       </div>
+                     </div>
+                   ))}
+                </div>
               </div>
             </div>
+
+            {/* Floating Decorative Icons */}
+            <div className="absolute -top-6 -right-6 w-16 h-16 bg-gold-gradient rounded-2xl shadow-gold-glow flex items-center justify-center text-navy-950 text-2xl animate-float">
+              <FaRocket />
+            </div>
+            <div className="absolute -bottom-6 -left-6 w-16 h-16 bg-navy-900 border border-sky-400/50 rounded-2xl shadow-sky-glow flex items-center justify-center text-sky-400 text-2xl animate-float" style={{ animationDelay: '0.5s' }}>
+              <FaPlay />
+            </div>
           </motion.div>
+
         </div>
       </div>
     </section>
