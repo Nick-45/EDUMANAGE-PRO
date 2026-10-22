@@ -6,7 +6,7 @@ import Hero from '../components/home/Hero';
 import Features from '../components/home/Features';
 import Pricing from '../components/home/Pricing';
 import Stats from '../components/home/Stats';
-import Testimonials from '../components/home/Testimonials';
+import Testimonials from '../components/home/AdSection';
 import CTA from '../components/home/CTA';
 
 const Home = () => {
