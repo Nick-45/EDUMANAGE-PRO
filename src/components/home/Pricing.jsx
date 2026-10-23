@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { FaCheck, FaTimes, FaCrown, FaGem, FaRocket, FaCalculator } from 'react-icons/fa';
+import { FaCheck, FaTimes, FaCrown, FaGem, FaRocket, FaUsers } from 'react-icons/fa';
 
 // Data for One-Time Payment
 const oneTimePlans = [
@@ -56,49 +56,56 @@ const oneTimePlans = [
   },
 ];
 
-// Data for Termly Subscription
+// Data for Termly Subscription (Population Determinant)
 const termlyPlans = [
   {
-    id: 'basic-termly',
-    name: 'Basic',
-    pricePerStudent: 20,
-    description: 'Core management tools for everyday school operations.',
+    id: 'termly-tier-1',
+    name: 'Standard Tier',
+    population: 'Up to 500 Students',
+    pricePerTerm: 5500,
+    description: 'Perfect for small to mid-sized schools.',
     features: [
       'Customized Mobile App',
       'Fee Management',
       'Student & Teacher Records',
       'Results & Grading',
       'Timetable Management',
+      'SMS Communication',
     ],
-    missingFeatures: ['SMS Communication', 'Transport', 'Accommodation', 'Health Records'],
+    missingFeatures: ['Transport', 'Accommodation', 'Health Records'],
     popular: false,
     icon: FaRocket,
   },
   {
-    id: 'standard-termly',
-    name: 'Standard',
-    pricePerStudent: 35,
-    description: 'Adds SMS communication to keep parents informed.',
+    id: 'termly-tier-2',
+    name: 'Premium Tier',
+    population: 'Up to 1,000 Students',
+    pricePerTerm: 7500,
+    description: 'Advanced tools for growing institutions.',
     features: [
-      'Everything in Basic',
+      'Everything in Standard',
       'Customized Mobile App',
       'SMS Communication',
+      'Transport Management',
+      'Health Records',
     ],
-    missingFeatures: ['Transport', 'Accommodation', 'Health Records'],
+    missingFeatures: ['Accommodation (Boarding)'],
     popular: true,
     icon: FaCrown,
   },
   {
-    id: 'premium-termly',
-    name: 'Premium',
-    pricePerStudent: 45,
-    description: 'The complete package with transport, boarding, and health records.',
+    id: 'termly-tier-3',
+    name: 'Enterprise Tier',
+    population: '1,000+ Students',
+    pricePerTerm: 12500,
+    description: 'The complete package for large-scale management.',
     features: [
-      'Everything in Standard',
+      'Everything in Premium',
       'Customized Mobile App',
       'Transport Management',
       'Accommodation (Boarding)',
       'Health Records',
+      'Priority Support',
     ],
     missingFeatures: [],
     popular: false,
@@ -109,13 +116,12 @@ const termlyPlans = [
 const Pricing = () => {
   const navigate = useNavigate();
   const [billingMode, setBillingMode] = useState('one-time'); // 'one-time' or 'termly'
-  const [studentCount, setStudentCount] = useState(300);
 
   const handleSelectPlan = (planId) => {
     if (billingMode === 'one-time') {
       navigate(`/payment?plan=${planId}&type=one-time`);
     } else {
-      navigate(`/payment?plan=${planId}&type=termly&students=${studentCount}`);
+      navigate(`/payment?plan=${planId}&type=termly`);
     }
   };
 
@@ -137,7 +143,7 @@ const Pricing = () => {
             Flexible Options to <span className="text-gold-gradient">Suit Your School</span>
           </h2>
           <p className="text-xl text-sky-100/70 max-w-3xl mx-auto mb-10">
-            Choose a one-time customized system to own forever, or a recurring termly subscription based on your student population.
+            Choose a one-time customized system to own forever, or a recurring termly subscription based on your school's population.
           </p>
 
           {/* Toggle Switch */}
@@ -165,31 +171,6 @@ const Pricing = () => {
           </div>
         </motion.div>
 
-        {/* Global Student Calculator (Only shown in Termly mode) */}
-        {billingMode === 'termly' && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }} 
-            animate={{ opacity: 1, height: 'auto' }} 
-            className="max-w-md mx-auto mb-10 bg-navy-900/80 p-6 rounded-2xl border border-sky-500/30 text-center shadow-inner-dark"
-          >
-            <label className="text-xs text-sky-200/60 uppercase tracking-wider mb-2 block">
-              Enter Total Number of Students
-            </label>
-            <div className="relative max-w-[200px] mx-auto">
-              <FaCalculator className="absolute left-3 top-1/2 -translate-y-1/2 text-sky-500/50" />
-              <input 
-                type="number" 
-                min="10" 
-                max="5000"
-                value={studentCount}
-                onChange={(e) => setStudentCount(Number(e.target.value))}
-                className="w-full pl-10 pr-4 py-3 bg-navy-950 border border-sky-500/30 text-white text-center font-bold text-lg rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-400"
-              />
-            </div>
-            <p className="text-xs text-sky-100/50 mt-2">Prices below will update automatically</p>
-          </motion.div>
-        )}
-
         <AnimatePresence mode="wait">
           {/* ========================================== */}
           {/* ONE-TIME PURCHASE VIEW                     */}
@@ -203,7 +184,7 @@ const Pricing = () => {
               transition={{ duration: 0.4 }}
               className="grid lg:grid-cols-3 gap-8 max-w-7xl mx-auto"
             >
-              {oneTimePlans.map((plan, index) => (
+              {oneTimePlans.map((plan) => (
                 <div
                   key={plan.id}
                   className={`relative bg-navy-900/80 backdrop-blur-xl rounded-3xl border ${
@@ -266,7 +247,7 @@ const Pricing = () => {
           )}
 
           {/* ========================================== */}
-          {/* TERMLY SUBSCRIPTION VIEW                   */}
+          {/* TERMLY SUBSCRIPTION VIEW (Population)      */}
           {/* ========================================== */}
           {billingMode === 'termly' && (
             <motion.div
@@ -290,20 +271,26 @@ const Pricing = () => {
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center justify-between mb-2">
                     <h3 className="text-2xl font-display font-bold text-white">{plan.name}</h3>
                     <plan.icon className={`text-3xl ${plan.popular ? 'text-gold-400' : 'text-sky-400'}`} />
+                  </div>
+
+                  {/* Population Badge */}
+                  <div className="inline-flex items-center bg-sky-500/10 border border-sky-500/20 px-3 py-1 rounded-full w-max mb-4">
+                    <FaUsers className="text-sky-400 mr-2 text-xs" />
+                    <span className="text-xs font-semibold text-sky-200">{plan.population}</span>
                   </div>
 
                   <p className="text-sm text-sky-100/60 mb-6 h-10">{plan.description}</p>
 
                   <div className="mb-6 pb-6 border-b border-sky-500/20">
                     <div className="flex items-baseline mb-1">
-                      <span className="text-4xl font-bold text-white">KSh {plan.pricePerStudent}</span>
-                      <span className="text-sky-100/60 text-sm ml-2">/ student / term</span>
+                      <span className="text-4xl font-bold text-white">KSh {plan.pricePerTerm.toLocaleString()}</span>
+                      <span className="text-sky-100/60 text-sm ml-2">/ term</span>
                     </div>
                     <p className="text-sm text-gold-400 font-medium mt-2">
-                      Estimated Total: KSh {(plan.pricePerStudent * studentCount).toLocaleString()} / term
+                      Flat rate based on tier
                     </p>
                   </div>
 
@@ -340,7 +327,6 @@ const Pricing = () => {
             </motion.div>
           )}
         </AnimatePresence>
-
       </div>
     </section>
   );
