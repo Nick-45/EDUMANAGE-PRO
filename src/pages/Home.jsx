@@ -11,7 +11,7 @@ import CTA from '../components/home/CTA';
 
 const Home = () => {
   // Replace with your actual WhatsApp number (including country code, no + or spaces)
-  const whatsappNumber = "254757357307"; 
+  const whatsappNumber = "254114963959"; 
   const whatsappMessage = "Hello EduPriva, I would like to inquire about the school management system.";
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
 
