@@ -35,7 +35,8 @@ const Hero = () => {
 
   return (
     <>
-      <section className="min-h-screen flex items-center pt-24 pb-12 bg-navy-gradient relative overflow-hidden">
+      {/* Applied the exact #142B4A navy background here */}
+      <section className="min-h-screen flex items-center pt-24 pb-12 bg-[#142B4A] relative overflow-hidden">
         {/* Ambient background glows */}
         <div className="pointer-events-none absolute -top-32 -left-32 w-96 h-96 bg-sky-500/20 rounded-full blur-3xl" />
         <div className="pointer-events-none absolute -bottom-32 -right-32 w-96 h-96 bg-gold-500/10 rounded-full blur-3xl" />
@@ -81,15 +82,15 @@ const Hero = () => {
                 variants={itemVariants}
                 className="flex flex-wrap gap-4 justify-center lg:justify-start mb-10"
               >
-                <div className="flex items-center text-sky-100/90 bg-navy-900/60 border border-sky-500/20 px-4 py-2 rounded-lg">
+                <div className="flex items-center text-sky-100/90 bg-[#142B4A]/80 border border-sky-500/20 px-4 py-2 rounded-lg shadow-inner">
                   <FaGraduationCap className="text-gold-400 mr-2" />
                   <span className="text-sm font-medium">Student Records</span>
                 </div>
-                <div className="flex items-center text-sky-100/90 bg-navy-900/60 border border-sky-500/20 px-4 py-2 rounded-lg">
+                <div className="flex items-center text-sky-100/90 bg-[#142B4A]/80 border border-sky-500/20 px-4 py-2 rounded-lg shadow-inner">
                   <FaChartLine className="text-gold-400 mr-2" />
                   <span className="text-sm font-medium">Fee Management</span>
                 </div>
-                <div className="flex items-center text-sky-100/90 bg-navy-900/60 border border-sky-500/20 px-4 py-2 rounded-lg">
+                <div className="flex items-center text-sky-100/90 bg-[#142B4A]/80 border border-sky-500/20 px-4 py-2 rounded-lg shadow-inner">
                   <FaMobileAlt className="text-gold-400 mr-2" />
                   <span className="text-sm font-medium">Custom Apps</span>
                 </div>
@@ -101,7 +102,7 @@ const Hero = () => {
               >
                 <Link
                   to="/signup"
-                  className="px-8 py-4 bg-gold-gradient text-navy-950 rounded-xl font-bold shadow-gold-glow hover:shadow-gold-glow-lg bg-[length:200%_100%] hover:animate-shimmer transform hover:-translate-y-1 transition-all duration-300 flex items-center"
+                  className="px-8 py-4 bg-gold-gradient text-[#142B4A] rounded-xl font-bold shadow-gold-glow hover:shadow-gold-glow-lg bg-[length:200%_100%] hover:animate-shimmer transform hover:-translate-y-1 transition-all duration-300 flex items-center"
                 >
                   <FaRocket className="inline mr-2" />
                   Start Your Application
@@ -124,9 +125,9 @@ const Hero = () => {
               className="flex-1 relative w-full max-w-lg mx-auto lg:mx-0"
             >
               {/* Main Dashboard Mockup */}
-              <div className="bg-navy-900/80 backdrop-blur-xl border border-sky-500/30 rounded-2xl shadow-2xl overflow-hidden animate-float">
+              <div className="bg-[#142B4A]/90 backdrop-blur-xl border border-sky-500/30 rounded-2xl shadow-2xl overflow-hidden animate-float">
                 {/* Mockup Header */}
-                <div className="h-16 bg-navy-950 border-b border-sky-500/20 flex items-center px-4">
+                <div className="h-16 bg-[#0a1428] border-b border-sky-500/20 flex items-center px-4">
                   <div className="w-8 h-8 bg-gold-gradient rounded-lg mr-3 shadow-gold-glow"></div>
                   <div className="flex-1 h-3 bg-sky-500/20 rounded-full"></div>
                   <div className="w-8 h-8 bg-sky-500/20 rounded-full ml-4"></div>
@@ -136,14 +137,14 @@ const Hero = () => {
                 <div className="p-6">
                   {/* Chart Area */}
                   <div className="flex gap-4 mb-6">
-                     <div className="w-2/3 h-32 bg-navy-950 border border-sky-500/20 rounded-lg p-3 flex items-end justify-between gap-2">
+                     <div className="w-2/3 h-32 bg-[#0a1428] border border-sky-500/20 rounded-lg p-3 flex items-end justify-between gap-2">
                         <div className="w-1/6 bg-sky-500/40 rounded-t h-[40%]"></div>
                         <div className="w-1/6 bg-gold-500/60 rounded-t h-[70%]"></div>
                         <div className="w-1/6 bg-sky-500/40 rounded-t h-[50%]"></div>
                         <div className="w-1/6 bg-gold-500/80 rounded-t h-[90%] shadow-gold-glow"></div>
                         <div className="w-1/6 bg-sky-500/40 rounded-t h-[60%]"></div>
                      </div>
-                     <div className="w-1/3 h-32 bg-navy-950 border border-sky-500/20 rounded-lg p-3 flex flex-col justify-center items-center">
+                     <div className="w-1/3 h-32 bg-[#0a1428] border border-sky-500/20 rounded-lg p-3 flex flex-col justify-center items-center">
                         <div className="w-12 h-12 rounded-full border-4 border-gold-500 border-t-transparent animate-spin mb-2"></div>
                         <div className="h-2 w-12 bg-sky-500/20 rounded-full"></div>
                      </div>
@@ -163,13 +164,13 @@ const Hero = () => {
                 </div>
               </div>
 
-              {/* Floating Decorative Icons - The Play button now opens the video */}
-              <div className="absolute -top-6 -right-6 w-16 h-16 bg-gold-gradient rounded-2xl shadow-gold-glow flex items-center justify-center text-navy-950 text-2xl animate-float">
+              {/* Floating Decorative Icons */}
+              <div className="absolute -top-6 -right-6 w-16 h-16 bg-gold-gradient rounded-2xl shadow-gold-glow flex items-center justify-center text-[#142B4A] text-2xl animate-float">
                 <FaRocket />
               </div>
               <button 
                 onClick={() => setShowVideo(true)}
-                className="absolute -bottom-6 -left-6 w-16 h-16 bg-navy-900 border border-sky-400/50 rounded-2xl shadow-sky-glow flex items-center justify-center text-sky-400 text-2xl animate-float hover:text-gold-400 hover:border-gold-500/50 transition-colors cursor-pointer" 
+                className="absolute -bottom-6 -left-6 w-16 h-16 bg-[#142B4A] border border-sky-400/50 rounded-2xl shadow-sky-glow flex items-center justify-center text-sky-400 text-2xl animate-float hover:text-gold-400 hover:border-gold-500/50 transition-colors cursor-pointer" 
                 style={{ animationDelay: '0.5s' }}
                 aria-label="Play Demo Video"
               >
@@ -188,7 +189,7 @@ const Hero = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy-950/90 backdrop-blur-md"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0a1428]/90 backdrop-blur-md"
           >
             {/* Click outside to close */}
             <div className="absolute inset-0" onClick={() => setShowVideo(false)}></div>
@@ -197,10 +198,10 @@ const Hero = () => {
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative w-full max-w-5xl bg-navy-900 border border-sky-500/30 rounded-2xl shadow-2xl overflow-hidden z-10"
+              className="relative w-full max-w-5xl bg-[#142B4A] border border-sky-500/30 rounded-2xl shadow-2xl overflow-hidden z-10"
             >
               {/* Modal Header */}
-              <div className="flex items-center justify-between px-4 py-3 bg-navy-950 border-b border-sky-500/20">
+              <div className="flex items-center justify-between px-4 py-3 bg-[#0a1428] border-b border-sky-500/20">
                 <div className="flex items-center text-sky-100 font-medium">
                   <FaPlay className="text-gold-400 mr-2 text-sm" /> EduPriva Platform Demo
                 </div>
