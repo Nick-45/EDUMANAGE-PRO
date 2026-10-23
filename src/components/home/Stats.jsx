@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
+import { collection, query, where, getCountFromServer } from 'firebase/firestore';
+import { db } from '../../firebase/config';
 
 const Stats = () => {
   const [ref, inView] = useInView({
@@ -8,10 +10,38 @@ const Stats = () => {
     threshold: 0.1,
   });
 
+  const [dynamicSchoolsCount, setDynamicSchoolsCount] = useState(0);
+
+  // 1. Fetch dynamic active schools count from Firestore
+  useEffect(() => {
+    const fetchActiveSchools = async () => {
+      try {
+        // Query only schools with status === 'active'
+        const q = query(collection(db, 'schools'), where('status', '==', 'active'));
+        
+        // getCountFromServer is highly efficient and only counts documents without downloading them
+        const snapshot = await getCountFromServer(q);
+        setDynamicSchoolsCount(snapshot.data().count);
+      } catch (error) {
+        console.error('Failed to fetch dynamic school stats:', error);
+      }
+    };
+
+    fetchActiveSchools();
+  }, []);
+
+  // 2. Define defaults and add the dynamic count
+  const BASE_DEFAULT_SCHOOLS = 500;
+  const BASE_DEFAULT_STUDENTS = 75000;
+  const BASE_DEFAULT_TEACHERS = 15000;
+
   const stats = [
-    { value: 500, label: 'Schools' },
-    { value: 75000, label: 'Students' },
-    { value: 15000, label: 'Teachers' },
+    { 
+      value: BASE_DEFAULT_SCHOOLS + dynamicSchoolsCount, 
+      label: 'Schools' 
+    },
+    { value: BASE_DEFAULT_STUDENTS, label: 'Students' },
+    { value: BASE_DEFAULT_TEACHERS, label: 'Teachers' },
     { value: 99, label: 'Satisfaction', suffix: '%' },
   ];
 
