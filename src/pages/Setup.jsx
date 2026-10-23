@@ -5,7 +5,7 @@ import { useSchool } from '../context/SchoolContext';
 import Navbar from '../components/layout/Navbar';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { FaCloudUploadAlt, FaCheck, FaArrowRight, FaRocket, FaSyncAlt, FaCrown, FaGem } from 'react-icons/fa';
+import { FaCloudUploadAlt, FaCheck, FaArrowRight, FaRocket, FaSyncAlt } from 'react-icons/fa';
 
 const SCHOOL_LEVELS = [
   { value: 'primary', label: 'Primary School' },
@@ -32,9 +32,8 @@ const Setup = () => {
     classNumbers: '1,2,3',
     streamNames: 'North,South',
     subjects: 'Mathematics,English,Kiswahili,Science',
-    // Subscription Model
-    billingModel: 'one-time', // 'one-time' or 'termly'
-    tier: 'basic', // 'basic', 'standard', 'premium'
+    billingModel: 'one-time',
+    tier: 'basic',
     primaryColor: '#1B5E20',
     secondaryColor: '#D4AF37',
     darkMode: true,
@@ -123,7 +122,6 @@ const Setup = () => {
       const classes = generateClasses(formData.classPrefix, formData.classNumbers, formData.streamNames);
       const subjects = generateSubjects(formData.subjects);
 
-      // 1. Save the application with the new billing model and tier
       await submitFn({
         identity: {
           name: formData.name, motto: formData.motto, address: formData.address,
@@ -138,8 +136,8 @@ const Setup = () => {
           streamNames: formData.streamNames.split(',').map(s => s.trim()).filter(Boolean)
         },
         subscription: { 
-          billingModel: formData.billingModel, // 'one-time' or 'termly'
-          tier: formData.tier,                 // 'basic', 'standard', 'premium'
+          billingModel: formData.billingModel,
+          tier: formData.tier,
           status: 'pending' 
         },
         theme: {
@@ -150,7 +148,6 @@ const Setup = () => {
         status: 'pending'
       });
 
-      // 2. Upload the logo
       if (logoFile) {
         try {
           await uploadLogo(logoFile);
@@ -172,7 +169,6 @@ const Setup = () => {
   const inputBase = 'w-full px-4 py-2 bg-navy-950/60 border border-sky-500/30 placeholder-sky-200/40 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400 transition';
   const labelBase = 'block text-sm font-medium text-sky-100 mb-2';
 
-  // Pricing data for display
   const tierDetails = {
     basic: { name: 'Basic', price: '45,000' },
     standard: { name: 'Standard', price: '55,000' },
@@ -208,7 +204,7 @@ const Setup = () => {
             </div>
           </div>
 
-          {/* STEP 1: School Info */}
+          {/* STEP 1 */}
           {step === 1 && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               className="bg-navy-900/80 backdrop-blur-xl border border-sky-500/20 rounded-2xl shadow-inner-dark shadow-gold-glow p-8">
@@ -250,7 +246,6 @@ const Setup = () => {
                 </div>
               </div>
 
-              {/* Logo upload */}
               <div className="mt-6 border-2 border-dashed border-sky-500/30 bg-navy-950/40 p-6 text-center rounded-xl hover:border-gold-500/50 transition">
                 {logoPreview ? (
                   <img src={logoPreview} alt="School Logo" className="max-h-32 mx-auto mb-3 rounded-lg" />
@@ -273,7 +268,7 @@ const Setup = () => {
             </motion.div>
           )}
 
-          {/* STEP 2: Academic & Plan */}
+          {/* STEP 2 */}
           {step === 2 && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               className="bg-navy-900/80 backdrop-blur-xl border border-sky-500/20 rounded-2xl shadow-inner-dark shadow-gold-glow p-8">
@@ -301,7 +296,6 @@ const Setup = () => {
               <h2 className="text-2xl font-display font-bold text-white mb-6 border-t border-sky-500/20 pt-8">Select Your Plan</h2>
               
               <div className="space-y-6">
-                {/* 1. Billing Model */}
                 <div>
                   <label className={labelBase}>Business Model</label>
                   <div className="grid md:grid-cols-2 gap-4">
@@ -329,7 +323,6 @@ const Setup = () => {
                   </div>
                 </div>
 
-                {/* 2. Tier Selection (Only show if One-Time) */}
                 {formData.billingModel === 'one-time' && (
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="overflow-hidden">
                     <label className={labelBase}>Select Tier</label>
@@ -349,10 +342,9 @@ const Setup = () => {
                         );
                       })}
                     </div>
-                  </div>
+                  </motion.div>
                 )}
                 
-                {/* If Termly, show what they get */}
                 {formData.billingModel === 'termly' && (
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="overflow-hidden">
                     <div className="p-4 bg-navy-950/40 border border-sky-500/20 rounded-xl">
@@ -365,7 +357,6 @@ const Setup = () => {
                 )}
               </div>
 
-              {/* Legal Checkboxes */}
               <div className="mt-8 space-y-3 pt-6 border-t border-sky-500/20">
                 <label className="flex items-start text-sm text-sky-100/80 cursor-pointer">
                   <input type="checkbox" name="acceptTerms" checked={formData.acceptTerms} onChange={handleInputChange}
@@ -395,7 +386,7 @@ const Setup = () => {
             </motion.div>
           )}
 
-          {/* STEP 3: Complete */}
+          {/* STEP 3 */}
           {step === 3 && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               className="bg-navy-900/80 backdrop-blur-xl border border-sky-500/20 rounded-2xl shadow-inner-dark shadow-gold-glow p-8 text-center">
