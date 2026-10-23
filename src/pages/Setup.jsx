@@ -5,7 +5,7 @@ import { useSchool } from '../context/SchoolContext';
 import Navbar from '../components/layout/Navbar';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { FaCloudUploadAlt, FaCheck, FaArrowRight } from 'react-icons/fa';
+import { FaCloudUploadAlt, FaCheck, FaArrowRight, FaRocket, FaSyncAlt, FaCrown, FaGem } from 'react-icons/fa';
 
 const SCHOOL_LEVELS = [
   { value: 'primary', label: 'Primary School' },
@@ -32,10 +32,12 @@ const Setup = () => {
     classNumbers: '1,2,3',
     streamNames: 'North,South',
     subjects: 'Mathematics,English,Kiswahili,Science',
+    // Subscription Model
+    billingModel: 'one-time', // 'one-time' or 'termly'
+    tier: 'basic', // 'basic', 'standard', 'premium'
     primaryColor: '#1B5E20',
     secondaryColor: '#D4AF37',
     darkMode: true,
-    plan: 'basic',
     acceptTerms: false,
     acceptPrivacy: false
   });
@@ -55,10 +57,11 @@ const Setup = () => {
       email: school.identity?.email || school.email || '',
       website: school.identity?.website || '',
       level: school.academic?.level || 'junior_school',
+      billingModel: school.subscription?.billingModel || 'one-time',
+      tier: school.subscription?.tier || 'basic',
       primaryColor: school.theme?.primaryColor || '#1B5E20',
       secondaryColor: school.theme?.secondaryColor || '#D4AF37',
       darkMode: school.theme?.darkMode ?? true,
-      plan: school.subscription?.plan || 'basic'
     }));
     if (school.identity?.logo) setLogoPreview(school.identity.logo);
   }, [school]);
@@ -66,6 +69,14 @@ const Setup = () => {
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({ ...formData, [name]: type === 'checkbox' ? checked : value });
+  };
+
+  const handleModelChange = (model) => {
+    setFormData({ ...formData, billingModel: model });
+  };
+
+  const handleTierChange = (tier) => {
+    setFormData({ ...formData, tier });
   };
 
   const handleLogoChange = (e) => {
@@ -99,13 +110,11 @@ const Setup = () => {
     }
 
     if (typeof submitFn !== 'function') {
-      toast.error('School context is misconfigured (submitApplication missing). Please refresh.');
-      console.error('submitApplication is not a function. useSchool returned:', { school, submitApplication, updateSchool });
+      toast.error('School context is misconfigured. Please refresh.');
       return;
     }
     if (logoFile && typeof uploadLogo !== 'function') {
-      toast.error('School context is misconfigured (uploadLogo missing). Please refresh.');
-      console.error('uploadLogo is not a function. useSchool returned:', { school, uploadLogo });
+      toast.error('School context is misconfigured. Please refresh.');
       return;
     }
 
@@ -114,7 +123,7 @@ const Setup = () => {
       const classes = generateClasses(formData.classPrefix, formData.classNumbers, formData.streamNames);
       const subjects = generateSubjects(formData.subjects);
 
-      // 1. Save the application (school doc already exists from signup)
+      // 1. Save the application with the new billing model and tier
       await submitFn({
         identity: {
           name: formData.name, motto: formData.motto, address: formData.address,
@@ -128,7 +137,11 @@ const Setup = () => {
           subjects,
           streamNames: formData.streamNames.split(',').map(s => s.trim()).filter(Boolean)
         },
-        subscription: { plan: formData.plan, status: 'pending' },
+        subscription: { 
+          billingModel: formData.billingModel, // 'one-time' or 'termly'
+          tier: formData.tier,                 // 'basic', 'standard', 'premium'
+          status: 'pending' 
+        },
         theme: {
           primaryColor: formData.primaryColor,
           secondaryColor: formData.secondaryColor,
@@ -137,7 +150,7 @@ const Setup = () => {
         status: 'pending'
       });
 
-      // 2. Then upload the logo (school doc is guaranteed to exist now)
+      // 2. Upload the logo
       if (logoFile) {
         try {
           await uploadLogo(logoFile);
@@ -151,7 +164,6 @@ const Setup = () => {
       setStep(3);
     } catch (error) {
       toast.error(error?.message || 'Failed to submit application');
-      console.error('Submit application error:', error);
     } finally {
       setLoading(false);
     }
@@ -160,11 +172,19 @@ const Setup = () => {
   const inputBase = 'w-full px-4 py-2 bg-navy-950/60 border border-sky-500/30 placeholder-sky-200/40 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400 transition';
   const labelBase = 'block text-sm font-medium text-sky-100 mb-2';
 
+  // Pricing data for display
+  const tierDetails = {
+    basic: { name: 'Basic', price: '45,000' },
+    standard: { name: 'Standard', price: '55,000' },
+    premium: { name: 'Premium', price: '75,000' }
+  };
+
   return (
     <>
       <Navbar />
       <div className="min-h-screen bg-navy-gradient pt-20 pb-12">
         <div className="container mx-auto px-4 py-8 max-w-4xl">
+          
           {/* Step indicators */}
           <div className="mb-8">
             <div className="flex items-center justify-between">
@@ -188,6 +208,7 @@ const Setup = () => {
             </div>
           </div>
 
+          {/* STEP 1: School Info */}
           {step === 1 && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               className="bg-navy-900/80 backdrop-blur-xl border border-sky-500/20 rounded-2xl shadow-inner-dark shadow-gold-glow p-8">
@@ -252,11 +273,13 @@ const Setup = () => {
             </motion.div>
           )}
 
+          {/* STEP 2: Academic & Plan */}
           {step === 2 && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               className="bg-navy-900/80 backdrop-blur-xl border border-sky-500/20 rounded-2xl shadow-inner-dark shadow-gold-glow p-8">
-              <h2 className="text-2xl font-display font-bold text-white mb-6">Academic Structure & Plan</h2>
-              <div className="grid md:grid-cols-2 gap-6">
+              <h2 className="text-2xl font-display font-bold text-white mb-6">Academic Structure</h2>
+              
+              <div className="grid md:grid-cols-2 gap-6 mb-10">
                 <div>
                   <label className={labelBase}>Class Prefix</label>
                   <input type="text" name="classPrefix" value={formData.classPrefix} onChange={handleInputChange} className={inputBase} placeholder="Grade / Form / Standard" />
@@ -266,38 +289,94 @@ const Setup = () => {
                   <input type="text" name="classNumbers" value={formData.classNumbers} onChange={handleInputChange} className={inputBase} placeholder="1,2,3,4" />
                 </div>
                 <div className="md:col-span-2">
-                  <label className={labelBase}>Number of Streams & Stream Names (comma separated)</label>
+                  <label className={labelBase}>Stream Names (comma separated)</label>
                   <input type="text" name="streamNames" value={formData.streamNames} onChange={handleInputChange} className={inputBase} placeholder="North,South,East,West" />
-                  <p className="text-xs text-sky-300/60 mt-1">
-                    {formData.streamNames.split(',').filter(s => s.trim()).length} streams will be created per class.
-                  </p>
                 </div>
                 <div className="md:col-span-2">
                   <label className={labelBase}>Subjects (comma separated)</label>
                   <textarea name="subjects" value={formData.subjects} onChange={handleInputChange} className={inputBase} rows={2} />
                 </div>
-                <div className="md:col-span-2">
-                  <label className={labelBase}>Subscription Plan</label>
-                  <select name="plan" value={formData.plan} onChange={handleInputChange} className={inputBase}>
-                    <option value="free">Free</option>
-                    <option value="basic">Basic</option>
-                    <option value="premium">Premium</option>
-                    <option value="enterprise">Enterprise</option>
-                  </select>
-                </div>
               </div>
 
-              <div className="mt-8 space-y-3">
-                <label className="flex items-start text-sm text-sky-100/80">
+              <h2 className="text-2xl font-display font-bold text-white mb-6 border-t border-sky-500/20 pt-8">Select Your Plan</h2>
+              
+              <div className="space-y-6">
+                {/* 1. Billing Model */}
+                <div>
+                  <label className={labelBase}>Business Model</label>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div 
+                      onClick={() => handleModelChange('one-time')}
+                      className={`cursor-pointer p-4 rounded-xl border-2 transition-all ${formData.billingModel === 'one-time' ? 'border-gold-500 bg-gold-500/10 shadow-gold-glow' : 'border-sky-500/20 bg-navy-950/40 hover:border-sky-500/40'}`}
+                    >
+                      <div className="flex items-center gap-3 mb-2">
+                        <FaRocket className={formData.billingModel === 'one-time' ? 'text-gold-400' : 'text-sky-400'} />
+                        <h3 className="font-bold text-white">Customized System</h3>
+                      </div>
+                      <p className="text-xs text-sky-100/60">One-time setup fee + installation. Own the system forever.</p>
+                    </div>
+                    
+                    <div 
+                      onClick={() => handleModelChange('termly')}
+                      className={`cursor-pointer p-4 rounded-xl border-2 transition-all ${formData.billingModel === 'termly' ? 'border-gold-500 bg-gold-500/10 shadow-gold-glow' : 'border-sky-500/20 bg-navy-950/40 hover:border-sky-500/40'}`}
+                    >
+                      <div className="flex items-center gap-3 mb-2">
+                        <FaSyncAlt className={formData.billingModel === 'termly' ? 'text-gold-400' : 'text-sky-400'} />
+                        <h3 className="font-bold text-white">Termly Subscription</h3>
+                      </div>
+                      <p className="text-xs text-sky-100/60">Pay KSh 45 per student, per term. Flexible recurring billing.</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Tier Selection (Only show if One-Time) */}
+                {formData.billingModel === 'one-time' && (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="overflow-hidden">
+                    <label className={labelBase}>Select Tier</label>
+                    <div className="grid md:grid-cols-3 gap-4">
+                      {['basic', 'standard', 'premium'].map((tierKey) => {
+                        const details = tierDetails[tierKey];
+                        const isSelected = formData.tier === tierKey;
+                        return (
+                          <div
+                            key={tierKey}
+                            onClick={() => handleTierChange(tierKey)}
+                            className={`cursor-pointer p-4 rounded-xl border-2 text-center transition-all ${isSelected ? 'border-gold-500 bg-gold-500/10 shadow-gold-glow' : 'border-sky-500/20 bg-navy-950/40 hover:border-sky-500/40'}`}
+                          >
+                            <h3 className="font-bold text-white mb-1">{details.name}</h3>
+                            <p className="text-gold-400 font-semibold">KSh {details.price}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                
+                {/* If Termly, show what they get */}
+                {formData.billingModel === 'termly' && (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="overflow-hidden">
+                    <div className="p-4 bg-navy-950/40 border border-sky-500/20 rounded-xl">
+                      <p className="text-sm text-sky-100/80">
+                        <strong className="text-white">Note:</strong> The termly subscription includes all <strong className="text-gold-400">Premium</strong> tier features. 
+                        Your final invoice will be calculated based on your total student enrollment.
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+
+              {/* Legal Checkboxes */}
+              <div className="mt-8 space-y-3 pt-6 border-t border-sky-500/20">
+                <label className="flex items-start text-sm text-sky-100/80 cursor-pointer">
                   <input type="checkbox" name="acceptTerms" checked={formData.acceptTerms} onChange={handleInputChange}
-                    className="h-4 w-4 mt-1 mr-3 text-gold-500 focus:ring-gold-400 border-sky-500/40 bg-navy-950 rounded" />
+                    className="h-4 w-4 mt-1 mr-3 text-gold-500 focus:ring-gold-400 border-sky-500/40 bg-navy-950 rounded cursor-pointer" />
                   <span>
                     I accept the <a href="/terms" target="_blank" className="text-gold-400 hover:text-gold-300 underline">Terms of Service</a>.
                   </span>
                 </label>
-                <label className="flex items-start text-sm text-sky-100/80">
+                <label className="flex items-start text-sm text-sky-100/80 cursor-pointer">
                   <input type="checkbox" name="acceptPrivacy" checked={formData.acceptPrivacy} onChange={handleInputChange}
-                    className="h-4 w-4 mt-1 mr-3 text-gold-500 focus:ring-gold-400 border-sky-500/40 bg-navy-950 rounded" />
+                    className="h-4 w-4 mt-1 mr-3 text-gold-500 focus:ring-gold-400 border-sky-500/40 bg-navy-950 rounded cursor-pointer" />
                   <span>
                     I have read and accept the <a href="/privacy" target="_blank" className="text-gold-400 hover:text-gold-300 underline">Privacy Policy</a>.
                   </span>
@@ -316,6 +395,7 @@ const Setup = () => {
             </motion.div>
           )}
 
+          {/* STEP 3: Complete */}
           {step === 3 && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               className="bg-navy-900/80 backdrop-blur-xl border border-sky-500/20 rounded-2xl shadow-inner-dark shadow-gold-glow p-8 text-center">
