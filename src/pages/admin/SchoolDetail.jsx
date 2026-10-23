@@ -273,7 +273,7 @@ const SchoolDetail = () => {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
       const year = now.getFullYear();
-      doc.text(`© ${year} mrak. All rights reserved.`, margin, footerY + 6);
+      doc.text(`© ${year} . All rights reserved.`, margin, footerY + 6);
       doc.text('System designed and maintained by Edupriva Technologies', margin, footerY + 11);
 
       doc.setTextColor(...SKY);
