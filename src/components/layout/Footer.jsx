@@ -140,7 +140,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="border-t border-sky-500/20 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sky-100/40 text-sm">
-            &copy; {currentYear} mrak. System designed and maintained by <span className="text-gold-400">EduPriva Technologies</span>.
+            &copy; {currentYear} . System designed and maintained by <span className="text-gold-400">EduPriva Technologies</span>.
           </p>
           <div className="flex space-x-6">
             <Link to="/privacy" className="text-sky-100/40 hover:text-sky-300 text-sm transition">
