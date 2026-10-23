@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { FaChevronLeft, FaChevronRight, FaBullhorn } from 'react-icons/fa';
-import { useLocation } from 'react-router-dom'; // Import useLocation
+import { FaChevronLeft, FaChevronRight, FaBullhorn, FaImage } from 'react-icons/fa';
+import { useLocation } from 'react-router-dom';
 import { collection, getDocs, query, where, doc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 
@@ -9,7 +9,8 @@ const AdSection = () => {
   const [internalAds, setInternalAds] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
-  const location = useLocation(); // Get current route path
+  const location = useLocation();
+  const adsenseRef = useRef(null);
 
   const ADSENSE_CLIENT_ID = 'ca-pub-3493778872805373'; 
   const ADSENSE_SLOT_ID = '7352622150'; 
@@ -32,7 +33,7 @@ const AdSection = () => {
     fetchAds();
   }, []);
 
-  // Load Google AdSense Script (Only needs to happen once globally)
+  // Load Google AdSense Script (Only once)
   useEffect(() => {
     const scriptId = 'google-adsense-script';
     if (!document.getElementById(scriptId)) {
@@ -45,18 +46,26 @@ const AdSection = () => {
     }
   }, []);
 
-  // Push AdSense when component mounts or route changes
+  // Fix for SPA: Forcefully clear the old ad before pushing a new one
   useEffect(() => {
-    // Small timeout to ensure the <ins> tag is in the DOM
+    // Only push if we are on the homepage (where the ad section lives)
+    if (location.pathname !== '/') return;
+
     const timer = setTimeout(() => {
       try {
+        // If the element exists, clear its innerHTML to remove the old ad
+        if (adsenseRef.current) {
+          adsenseRef.current.innerHTML = '';
+        }
+        // Push the new ad
         (window.adsbygoogle = window.adsbygoogle || []).push({});
       } catch (e) {
-        console.warn('AdSense push error (likely ad blocker):', e);
+        console.warn('AdSense push error (handled):', e);
       }
-    }, 100);
+    }, 300); // 300ms delay ensures React has painted the DOM
+
     return () => clearTimeout(timer);
-  }, [location.pathname]); // Re-run if the route changes
+  }, [location.pathname]);
 
   // Log Impression
   useEffect(() => {
@@ -99,25 +108,47 @@ const AdSection = () => {
               className={`rounded-2xl shadow-xl overflow-hidden border border-sky-500/20 bg-gradient-to-r ${currentAd.bgColor || 'from-sky-900 to-navy-900'}`}
             >
               <div className="md:flex items-center">
-                <div className="md:w-1/2 h-48 md:h-full bg-navy-950 relative">
+                {/* IMAGE FIX: Added a robust image checker */}
+                <div className="md:w-1/2 h-48 md:h-full bg-navy-950 relative flex items-center justify-center overflow-hidden">
                   {currentAd.image ? (
-                    <img src={currentAd.image} alt={currentAd.title} className="w-full h-full object-cover opacity-80 mix-blend-overlay absolute inset-0" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center opacity-20">
-                      <FaBullhorn className="text-5xl text-white" />
-                    </div>
-                  )}
+                    <img 
+                      src={currentAd.image} 
+                      alt={currentAd.title} 
+                      className="w-full h-full object-cover opacity-80 mix-blend-overlay absolute inset-0"
+                      onError={(e) => {
+                        // If image fails to load, hide it and show fallback icon
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  
+                  {/* Fallback Icon (Shows if no image URL or if image fails to load) */}
+                  <div 
+                    className={`w-full h-full flex flex-col items-center justify-center opacity-30 ${currentAd.image ? 'hidden' : 'flex'}`}
+                  >
+                    <FaImage className="text-4xl text-sky-400 mb-2" />
+                    <span className="text-xs text-sky-200 uppercase tracking-widest">No Image</span>
+                  </div>
                 </div>
+
                 <div className="p-6 md:w-1/2 text-white relative z-10">
                   <h3 className="text-xl font-display font-bold mb-2">{currentAd.title}</h3>
                   <p className="text-sm text-white/70 mb-6">{currentAd.description}</p>
-                  <a href={currentAd.link} onClick={handleAdClick} target="_blank" rel="noopener noreferrer" className="inline-block px-4 py-2 bg-white text-navy-950 text-sm font-bold rounded-lg hover:bg-gray-100 transition">
+                  <a 
+                    href={currentAd.link} 
+                    onClick={handleAdClick}
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-block px-4 py-2 bg-white text-navy-950 text-sm font-bold rounded-lg hover:bg-gray-100 transition"
+                  >
                     {currentAd.ctaText}
                   </a>
                 </div>
               </div>
             </motion.div>
 
+            {/* Controls */}
             {internalAds.length > 1 && (
               <>
                 <button onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/40 text-white rounded-full flex items-center justify-center hover:bg-black/60 backdrop-blur-sm z-20">
@@ -131,16 +162,12 @@ const AdSection = () => {
           </div>
 
           {/* RIGHT SIDE: Google AdSense */}
-          {/* THE KEY FIX: The key prop forces React to destroy and recreate the <ins> tag on route change */}
-          <div 
-            key={`adsense-${location.pathname}`} 
-            className="bg-navy-900/50 border border-sky-500/20 rounded-2xl p-4 flex flex-col items-center justify-center min-h-[250px] relative overflow-hidden"
-          >
+          <div className="bg-navy-900/50 border border-sky-500/20 rounded-2xl p-4 flex flex-col items-center justify-center min-h-[250px] relative overflow-hidden">
             <span className="absolute top-2 right-2 text-[10px] text-sky-100/30 uppercase tracking-widest">Ad</span>
             
-            {/* Unique ID per mount ensures AdSense doesn't get confused */}
+            {/* Added ref to control the ad element directly */}
             <ins 
-              id={`adsense-unit-${location.pathname.replace(/\//g, '-')}`}
+              ref={adsenseRef}
               className="adsbygoogle w-full"
               style={{ display: 'block', minHeight: '200px' }}
               data-ad-client={ADSENSE_CLIENT_ID}
