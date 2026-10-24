@@ -434,8 +434,8 @@ const Payment = () => {
                         <div className="bg-navy-950/60 border border-sky-500/20 rounded-lg p-4 mb-4">
                           <h4 className="font-medium text-white mb-2">Bank Account Details</h4>
                           <p className="text-sm text-sky-100/80 mb-1"><span className="font-medium text-sky-300">Bank:</span> Equity Bank</p>
-                          <p className="text-sm text-sky-100/80 mb-1"><span className="font-medium text-sky-300">Account Name:</span> EduManagerPro Ltd</p>
-                          <p className="text-sm text-sky-100/80 mb-1"><span className="font-medium text-sky-300">Account Number:</span> 1234567890</p>
+                          <p className="text-sm text-sky-100/80 mb-1"><span className="font-medium text-sky-300">Account Name:</span> Edupriva Technologies</p>
+                          <p className="text-sm text-sky-100/80 mb-1"><span className="font-medium text-sky-300">Account Number:</span> </p>
                           <p className="text-sm text-sky-100/80"><span className="font-medium text-sky-300">Branch:</span> Nairobi CBD</p>
                         </div>
 
