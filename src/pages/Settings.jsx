@@ -6,7 +6,7 @@ import Navbar from '../components/layout/Navbar';
 import { motion } from 'framer-motion';
 import { 
   FaCheck, FaTimes, FaArrowLeft, FaExclamationTriangle, 
-  FaSpinner, FaCreditCard, FaHistory, FaDownload, FaCrown
+  FaSpinner, FaCrown, FaUsers, FaCommentDots 
 } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 
@@ -19,36 +19,45 @@ const Settings = () => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [updating, setUpdating] = useState(false);
 
-  // Plans updated to match your exact pricing and feature specs
+  // Updated Plans matching the new pricing strategy
   const plans = [
     {
-      id: 'basic',
-      name: 'Basic',
-      setupFee: 45000,
-      installFee: 4500,
-      features: ['Custom Mobile App', 'Fee Management', 'Student & Teacher Records', 'Results', 'Timetable']
-    },
-    {
       id: 'standard',
-      name: 'Standard',
-      setupFee: 55000,
-      installFee: 4500,
-      popular: true,
-      features: ['Custom Mobile App', 'Everything in Basic', 'SMS Communication']
+      name: 'Standard Tier',
+      population: 'Up to 500 Students',
+      pricePerTerm: 8500,
+      setupFee: 4500,
+      includedSms: '1,000 SMS',
+      features: ['Branded Mobile App (White-Label)', 'Fee Management', 'Student & Teacher Records', 'Results & Grading', 'Timetable Management'],
+      missing: ['Transport', 'Accommodation', 'Health Records']
     },
     {
       id: 'premium',
-      name: 'Premium',
-      setupFee: 75000,
-      installFee: 4500,
-      features: ['Custom Mobile App', 'Everything in Standard', 'Transport', 'Accommodation', 'Health Records']
+      name: 'Premium Tier',
+      population: 'Up to 1,000 Students',
+      pricePerTerm: 15000,
+      setupFee: 4500,
+      includedSms: '2,500 SMS',
+      popular: true,
+      features: ['Everything in Standard', 'Branded Mobile App', 'Transport Management', 'Health Records'],
+      missing: ['Accommodation (Boarding)']
+    },
+    {
+      id: 'enterprise',
+      name: 'Enterprise Tier',
+      population: '1,000+ Students',
+      pricePerTerm: 25000,
+      setupFee: 4500,
+      includedSms: '5,000 SMS',
+      features: ['Everything in Premium', 'Branded Mobile App', 'Accommodation (Boarding)', 'Priority Support'],
+      missing: []
     }
   ];
 
   // Hardcoded for now until you build the subscription logic in the backend
   const [subscription, setSubscription] = useState({
     isActive: school?.status === 'active',
-    plan: school?.subscription?.plan || 'inactive',
+    plan: school?.subscription?.tier || 'inactive',
     startDate: school?.subscription?.startDate || null,
     endDate: school?.subscription?.endDate || null,
     billingHistory: []
@@ -68,8 +77,6 @@ const Settings = () => {
   };
 
   const handleSubscribe = (planId) => {
-    // Navigate to a payment page, passing the selected plan
-    // You will build this logic later with Lipana/M-Pesa
     toast.success(`Selected ${planId} plan. Redirecting to payment...`);
     navigate(`/payment?plan=${planId}`);
   };
@@ -145,7 +152,7 @@ const Settings = () => {
             {subscription?.isActive ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div>
-                  <p className="text-sm text-sky-100/60 mb-1">Plan</p>
+                  <p className="text-sm text-sky-100/60 mb-1">Plan Tier</p>
                   <p className="text-2xl font-bold capitalize text-white">{subscription?.plan}</p>
                 </div>
                 <div>
@@ -201,10 +208,19 @@ const Settings = () => {
                   
                   <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
                   
+                  <div className="inline-flex items-center bg-sky-500/10 border border-sky-500/20 px-3 py-1 rounded-full w-max mb-4">
+                    <FaUsers className="text-sky-400 mr-2 text-xs" />
+                    <span className="text-xs font-semibold text-sky-200">{plan.population}</span>
+                  </div>
+                  
                   <div className="mb-4">
-                    <span className="text-3xl font-bold text-white">{plan.setupFee.toLocaleString()} <span className="text-sm font-normal text-sky-100/60">KES Setup</span></span>
-                    <p className="text-sm text-gold-400 mt-1">+ {plan.installFee.toLocaleString()} KES install fee</p>
-                    <p className="text-xs text-sky-200/50 mt-1">+ 45 KES / student / term</p>
+                    <span className="text-3xl font-bold text-white">KSh {plan.pricePerTerm.toLocaleString()} <span className="text-sm font-normal text-sky-100/60">/ term</span></span>
+                    <p className="text-sm text-gold-400 mt-1">+ KSh {plan.setupFee.toLocaleString()} one-time setup</p>
+                  </div>
+
+                  <div className="bg-navy-950/50 rounded-lg p-3 mb-4 border border-sky-500/10 flex items-center">
+                    <FaCommentDots className="text-gold-400 mr-3 text-lg" />
+                    <span className="text-sm text-sky-100 font-medium">Includes {plan.includedSms}</span>
                   </div>
                   
                   <ul className="space-y-3 mb-6 flex-1">
@@ -212,6 +228,12 @@ const Settings = () => {
                       <li key={index} className="flex items-start">
                         <FaCheck className="text-gold-400 mr-2 mt-1 flex-shrink-0 text-sm" />
                         <span className="text-sm text-sky-100/80">{feature}</span>
+                      </li>
+                    ))}
+                    {plan.missing.map((feature, index) => (
+                      <li key={`miss-${index}`} className="flex items-start opacity-40">
+                        <FaTimes className="text-sky-500 mr-2 mt-1 flex-shrink-0 text-sm" />
+                        <span className="text-sm text-sky-100">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -230,6 +252,10 @@ const Settings = () => {
                 </div>
               ))}
             </div>
+            
+            <p className="text-xs text-center text-sky-100/50 mt-6">
+              Need more SMS? You can top up your SMS wallet at any time for KSh 500 per 1,000 SMS.
+            </p>
           </motion.div>
 
           {/* Danger Zone */}
