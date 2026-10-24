@@ -5,7 +5,7 @@ import { useSchool } from '../context/SchoolContext';
 import Navbar from '../components/layout/Navbar';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { FaCloudUploadAlt, FaCheck, FaArrowRight, FaRocket, FaSyncAlt } from 'react-icons/fa';
+import { FaCloudUploadAlt, FaCheck, FaArrowRight, FaUsers } from 'react-icons/fa';
 
 const SCHOOL_LEVELS = [
   { value: 'primary', label: 'Primary School' },
@@ -32,8 +32,7 @@ const Setup = () => {
     classNumbers: '1,2,3',
     streamNames: 'North,South',
     subjects: 'Mathematics,English,Kiswahili,Science',
-    billingModel: 'one-time',
-    tier: 'basic',
+    tier: 'standard', // Default to standard tier
     primaryColor: '#1B5E20',
     secondaryColor: '#D4AF37',
     darkMode: true,
@@ -56,8 +55,7 @@ const Setup = () => {
       email: school.identity?.email || school.email || '',
       website: school.identity?.website || '',
       level: school.academic?.level || 'junior_school',
-      billingModel: school.subscription?.billingModel || 'one-time',
-      tier: school.subscription?.tier || 'basic',
+      tier: school.subscription?.tier || 'standard',
       primaryColor: school.theme?.primaryColor || '#1B5E20',
       secondaryColor: school.theme?.secondaryColor || '#D4AF37',
       darkMode: school.theme?.darkMode ?? true,
@@ -68,10 +66,6 @@ const Setup = () => {
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({ ...formData, [name]: type === 'checkbox' ? checked : value });
-  };
-
-  const handleModelChange = (model) => {
-    setFormData({ ...formData, billingModel: model });
   };
 
   const handleTierChange = (tier) => {
@@ -136,7 +130,7 @@ const Setup = () => {
           streamNames: formData.streamNames.split(',').map(s => s.trim()).filter(Boolean)
         },
         subscription: { 
-          billingModel: formData.billingModel,
+          billingModel: 'termly', // Locked to termly now
           tier: formData.tier,
           status: 'pending' 
         },
@@ -169,11 +163,11 @@ const Setup = () => {
   const inputBase = 'w-full px-4 py-2 bg-navy-950/60 border border-sky-500/30 placeholder-sky-200/40 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400 transition';
   const labelBase = 'block text-sm font-medium text-sky-100 mb-2';
 
-  const tierDetails = {
-    basic: { name: 'Basic', price: '45,000' },
-    standard: { name: 'Standard', price: '55,000' },
-    premium: { name: 'Premium', price: '75,000' }
-  };
+  const tierOptions = [
+    { id: 'standard', name: 'Standard Tier', population: 'Up to 500 Students', price: '8,500' },
+    { id: 'premium', name: 'Premium Tier', population: 'Up to 1,000 Students', price: '15,000' },
+    { id: 'enterprise', name: 'Enterprise Tier', population: '1,000+ Students', price: '25,000' }
+  ];
 
   return (
     <>
@@ -257,7 +251,7 @@ const Setup = () => {
                   className="px-4 py-2 bg-sky-500/10 border border-sky-400/40 text-sky-300 rounded-lg hover:bg-sky-500/20 transition">
                   {logoPreview ? 'Change Logo' : 'Upload School Logo'}
                 </button>
-                <p className="text-xs text-sky-300/60 mt-2">PNG or JPG, max 2MB. Used on your school's app icon.</p>
+                <p className="text-xs text-sky-300/60 mt-2">PNG or JPG, max 2MB. Used on your branded mobile app.</p>
               </div>
 
               <div className="flex justify-end mt-6">
@@ -294,67 +288,31 @@ const Setup = () => {
               </div>
 
               <h2 className="text-2xl font-display font-bold text-white mb-6 border-t border-sky-500/20 pt-8">Select Your Plan</h2>
+              <p className="text-sky-100/60 text-sm mb-4">Choose the tier that best matches your school's total student population.</p>
               
-              <div className="space-y-6">
-                <div>
-                  <label className={labelBase}>Business Model</label>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div 
-                      onClick={() => handleModelChange('one-time')}
-                      className={`cursor-pointer p-4 rounded-xl border-2 transition-all ${formData.billingModel === 'one-time' ? 'border-gold-500 bg-gold-500/10 shadow-gold-glow' : 'border-sky-500/20 bg-navy-950/40 hover:border-sky-500/40'}`}
+              <div className="grid md:grid-cols-3 gap-4 mb-8">
+                {tierOptions.map((tier) => {
+                  const isSelected = formData.tier === tier.id;
+                  return (
+                    <div
+                      key={tier.id}
+                      onClick={() => handleTierChange(tier.id)}
+                      className={`cursor-pointer p-5 rounded-xl border-2 text-center transition-all flex flex-col items-center justify-center ${
+                        isSelected ? 'border-gold-500 bg-gold-500/10 shadow-gold-glow' : 'border-sky-500/20 bg-navy-950/40 hover:border-sky-500/40'
+                      }`}
                     >
-                      <div className="flex items-center gap-3 mb-2">
-                        <FaRocket className={formData.billingModel === 'one-time' ? 'text-gold-400' : 'text-sky-400'} />
-                        <h3 className="font-bold text-white">Customized System</h3>
-                      </div>
-                      <p className="text-xs text-sky-100/60">One-time setup fee + installation. Own the system forever.</p>
+                      <FaUsers className={`text-2xl mb-2 ${isSelected ? 'text-gold-400' : 'text-sky-400'}`} />
+                      <h3 className="font-bold text-white mb-1">{tier.name}</h3>
+                      <p className="text-xs text-sky-200/60 mb-3">{tier.population}</p>
+                      <p className="text-gold-400 font-bold">KSh {tier.price} <span className="text-xs font-normal">/ term</span></p>
                     </div>
-                    
-                    <div 
-                      onClick={() => handleModelChange('termly')}
-                      className={`cursor-pointer p-4 rounded-xl border-2 transition-all ${formData.billingModel === 'termly' ? 'border-gold-500 bg-gold-500/10 shadow-gold-glow' : 'border-sky-500/20 bg-navy-950/40 hover:border-sky-500/40'}`}
-                    >
-                      <div className="flex items-center gap-3 mb-2">
-                        <FaSyncAlt className={formData.billingModel === 'termly' ? 'text-gold-400' : 'text-sky-400'} />
-                        <h3 className="font-bold text-white">Termly Subscription</h3>
-                      </div>
-                      <p className="text-xs text-sky-100/60">Pay KSh 45 per student, per term. Flexible recurring billing.</p>
-                    </div>
-                  </div>
-                </div>
+                  );
+                })}
+              </div>
 
-                {formData.billingModel === 'one-time' && (
-                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="overflow-hidden">
-                    <label className={labelBase}>Select Tier</label>
-                    <div className="grid md:grid-cols-3 gap-4">
-                      {['basic', 'standard', 'premium'].map((tierKey) => {
-                        const details = tierDetails[tierKey];
-                        const isSelected = formData.tier === tierKey;
-                        return (
-                          <div
-                            key={tierKey}
-                            onClick={() => handleTierChange(tierKey)}
-                            className={`cursor-pointer p-4 rounded-xl border-2 text-center transition-all ${isSelected ? 'border-gold-500 bg-gold-500/10 shadow-gold-glow' : 'border-sky-500/20 bg-navy-950/40 hover:border-sky-500/40'}`}
-                          >
-                            <h3 className="font-bold text-white mb-1">{details.name}</h3>
-                            <p className="text-gold-400 font-semibold">KSh {details.price}</p>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </motion.div>
-                )}
-                
-                {formData.billingModel === 'termly' && (
-                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="overflow-hidden">
-                    <div className="p-4 bg-navy-950/40 border border-sky-500/20 rounded-xl">
-                      <p className="text-sm text-sky-100/80">
-                        <strong className="text-white">Note:</strong> The termly subscription includes all <strong className="text-gold-400">Premium</strong> tier features. 
-                        Your final invoice will be calculated based on your total student enrollment.
-                      </p>
-                    </div>
-                  </motion.div>
-                )}
+              <div className="bg-navy-950/40 border border-sky-500/20 rounded-xl p-4 mb-8 text-sm text-sky-100/80">
+                <strong className="text-white">Note:</strong> All termly plans include a base amount of SMS and your Branded Mobile App. 
+                A one-time setup fee of <strong className="text-gold-400">KSh 4,500</strong> will be applied to your initial invoice for onboarding and data migration.
               </div>
 
               <div className="mt-8 space-y-3 pt-6 border-t border-sky-500/20">
@@ -395,7 +353,7 @@ const Setup = () => {
               </div>
               <h2 className="text-3xl font-display font-bold text-white mb-3">Application Submitted!</h2>
               <p className="text-sky-100/70 mb-6 max-w-lg mx-auto">
-                Our team will review your school information and begin building your branded mobile app.
+                Our team will review your school information and begin setting up your white-labeled mobile app.
                 You can track progress from your dashboard.
               </p>
               <button onClick={() => navigate('/dashboard')}
